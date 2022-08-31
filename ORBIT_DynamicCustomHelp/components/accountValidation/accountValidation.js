@@ -2,7 +2,7 @@
 
 module.exports = {
     metadata: () => ({
-        name: "accountValidation.DEV",
+        name: "accountValidation.PROD",
         properties: {
             accountNumber: {
                 type: "string",

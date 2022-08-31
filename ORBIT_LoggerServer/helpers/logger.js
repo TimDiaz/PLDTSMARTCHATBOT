@@ -26,7 +26,7 @@ module.exports = {
                 },
                 mail: {
                     type: log4jsmtp,
-                    recipients: 't-tsdiaz@supplier.smart.com.ph, t-jpvalete@supplier.smart.com.ph',
+                    recipients: 'AllCCareEnablingServices@smart.com.ph, t-tsdiaz@supplier.smart.com.ph, FCDavid@smart.com.ph, avcansanay@smart.com.ph, t-acalero@supplier.smart.com.ph, t-jpvalete@supplier.smart.com.ph',
                     transport: 'SMTP',
                     SMTP: {
                         host: 'smtp.gmail.com',

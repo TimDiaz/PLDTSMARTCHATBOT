@@ -13,7 +13,7 @@ module.exports = {
         Port: 5000
     },
     BCPLogging: {
-        URL: 'https://staging.chatbot171.pldthome.com:7745/bcplogginginsert',
+        URL: 'https://chatbot171.pldthome.com:7745/bcplogginginsert',
         AppNames: {
             AccountValidation: "orbit_prod-accountvalidation",
             NumberServiceability:{

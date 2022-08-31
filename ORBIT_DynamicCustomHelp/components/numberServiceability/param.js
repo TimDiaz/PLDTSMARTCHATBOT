@@ -3,7 +3,7 @@
 module.exports = {
 
     metadata: () => ({
-        name: "numberServiceabilityPARAM.DEV", //"getParam",
+        name: "numberServiceabilityPARAM.PROD", //"getParam",
         properties: {
             serviceNumber: {
                 type: "string",

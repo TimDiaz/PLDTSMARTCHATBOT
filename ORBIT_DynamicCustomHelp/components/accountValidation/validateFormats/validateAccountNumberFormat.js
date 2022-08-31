@@ -3,7 +3,7 @@
 module.exports = {
 
     metadata: () => ({
-        name: "validateaccountnumberformat.DEV", //"checkacctnumberformat",
+        name: "validateaccountnumberformat.PROD", //"checkacctnumberformat",
         properties: {
             accountNumber: {
                 type: "string",
