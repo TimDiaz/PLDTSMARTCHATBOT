@@ -1,0 +1,122 @@
+{
+  "_from": "@log4js-node/smtp@*",
+  "_id": "@log4js-node/smtp@2.0.8",
+  "_inBundle": false,
+  "_integrity": "sha512-rBkMvWsXjYY0JfnN4X4CUJO0EiW0f5b2j7SevCK8Pc/rfYXzs4+Xdsri7M236eaH1nqkb1DWsiEXhYPRl9PJMA==",
+  "_location": "/@log4js-node/smtp",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@log4js-node/smtp@*",
+    "name": "@log4js-node/smtp",
+    "escapedName": "@log4js-node%2fsmtp",
+    "scope": "@log4js-node",
+    "rawSpec": "*",
+    "saveSpec": null,
+    "fetchSpec": "*"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@log4js-node/smtp/-/smtp-2.0.8.tgz",
+  "_shasum": "af455c31ad3532260dc52a71591da3e812c36a11",
+  "_spec": "@log4js-node/smtp@*",
+  "_where": "C:\\Users\\Joemar.Valete\\Documents\\Projects\\MIGRATION\\ProjectOrbit_DEV",
+  "author": {
+    "name": "Gareth Jones",
+    "email": "gareth.nomiddlename@gmail.com"
+  },
+  "browser": {
+    "os": false
+  },
+  "bugs": {
+    "url": "http://github.com/log4js-node/smtp/issues"
+  },
+  "bundleDependencies": false,
+  "config": {
+    "validate-commit-msg": {
+      "types": [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "example",
+        "perf",
+        "test",
+        "chore",
+        "revert"
+      ],
+      "warnOnFail": false,
+      "maxSubjectLength": 72,
+      "subjectPattern": ".+",
+      "subjectPatternErrorMsg": "subject does not match subject pattern!",
+      "helpMessage": "\n# allowed type: feat, fix, docs, style, refactor, example, perf, test, chore, revert\n# subject no more than 50 chars\n# a body line no more than 72 chars"
+    }
+  },
+  "dependencies": {
+    "nodemailer": "^6.7.5"
+  },
+  "deprecated": false,
+  "description": "SMTP Appender for log4js-node",
+  "devDependencies": {
+    "@log4js-node/sandboxed-module": "^2.2.1",
+    "codecov": "^3.8.3",
+    "conventional-changelog": "^3.1.25",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-import-resolver-node": "^0.3.6",
+    "eslint-plugin-import": "^2.26.0",
+    "husky": "^8.0.1",
+    "nyc": "^15.1.0",
+    "tap": "^16.2.0",
+    "typescript": "^4.6.4",
+    "validate-commit-msg": "^2.14.0"
+  },
+  "directories": {
+    "test": "test",
+    "lib": "lib"
+  },
+  "engines": {
+    "node": ">=6.0"
+  },
+  "files": [
+    "lib",
+    "types"
+  ],
+  "homepage": "https://log4js-node.github.io/log4js-node/",
+  "keywords": [
+    "logging",
+    "log",
+    "log4j",
+    "node",
+    "smtp"
+  ],
+  "license": "Apache-2.0",
+  "main": "./lib/index.js",
+  "name": "@log4js-node/smtp",
+  "nyc": {
+    "all": true,
+    "include": [
+      "lib/**/*.js"
+    ],
+    "require": [
+      "./test/sandbox-coverage"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/log4js-node/smtp.git"
+  },
+  "scripts": {
+    "codecov": "tap 'test/tap/**/*.js' --cov --coverage-report=lcov && codecov",
+    "commitmsg": "validate-commit-msg",
+    "prepush": "npm test",
+    "pretest": "eslint 'lib/**/*.js' 'test/**/*.js'",
+    "test": "tap 'test/tap/**/*.js' --100",
+    "typings": "tsc -p types/tsconfig.json"
+  },
+  "types": "./types/index.d.ts",
+  "version": "2.0.8"
+}
