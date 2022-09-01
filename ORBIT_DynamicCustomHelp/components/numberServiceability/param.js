@@ -1,9 +1,9 @@
 "use strict";
 
+const componentName = require('../../configurations/component_config');
 module.exports = {
-
     metadata: () => ({
-        name: "numberServiceabilityPARAM.DEV", //"getParam",
+        name: componentName.NumberServiceabilityPARAM, //"getParam",
         properties: {
             serviceNumber: {
                 type: "string",
