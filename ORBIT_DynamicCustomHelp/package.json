@@ -1,6 +1,6 @@
 {
   "name": "projectorbit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Oracle Digital Assistant Component Package",
   "main": "main.js",
   "scripts": {

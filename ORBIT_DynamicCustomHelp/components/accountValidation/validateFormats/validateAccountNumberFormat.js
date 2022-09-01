@@ -1,9 +1,9 @@
 "use strict";
 
+const componentName = require('../../../configurations/component_config');
 module.exports = {
-
     metadata: () => ({
-        name: "validateaccountnumberformat.DEV", //"checkacctnumberformat",
+        name: componentName.ValidateAccountNumberFormat, //"checkacctnumberformat",
         properties: {
             accountNumber: {
                 type: "string",
