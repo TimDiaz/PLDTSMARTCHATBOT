@@ -3,6 +3,7 @@ const apiBaseConfig = require('../apiBase_config');
 module.exports = {
     API:{
         Serviceable: {
+            Name: "NumberServiceability", 
             PostOptions: (body) => {
                 return {
                     'method': 'POST',

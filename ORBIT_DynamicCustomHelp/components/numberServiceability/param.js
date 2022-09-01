@@ -26,7 +26,7 @@ module.exports = {
             const strResult = JSON.stringify(result);
             emailLog.addContext("apierrorcode", strResult);
             emailLog.addContext("apierrormsg", resultCode);
-            const message = globalProp.Email.EmailFormat(resultCode, strResult, serviceNumber);
+            const message = globalProp.Email.EmailFormat(globalProp.NumberServiceability.API.Serviceable.Name, resultCode, strResult, serviceNumber);
 
             logger.error(`[ERROR CODE: ${resultCode}] ${strResult}`)
             emailLog.error(message);
