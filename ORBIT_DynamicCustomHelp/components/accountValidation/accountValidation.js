@@ -35,6 +35,8 @@ module.exports = {
             emailLog.error(message);
         }
 
+        let transition = 'failure';
+
         const accountNumber = conversation.properties().accountNumber;
         const serviceNumber = conversation.properties().serviceNumber;
         logger.addContext("serviceNumber", serviceNumber);
@@ -64,8 +66,7 @@ module.exports = {
                 logError(error, error.code);
                 
                 conversation.variable('invalidacctmsg', error.message);
-                conversation.transition('failure');
-                done();
+                transition = 'failure';                
             }
             else {
                 logger.info(`Request success with Response Code: [${response.statusCode}]`);
@@ -75,41 +76,29 @@ module.exports = {
                     if (response.statusCode === 400) {
                         logger.error(`[ERROR CODE: ${response.statusCode}] ${strResponseBody}`)
                         console.log(response.statusCode + "Invalid Account Number or Telephone Number, Please try a different account.");
-                        conversation.transition('invalidAcct');
-                        done();
+                        transition = 'invalidAcct';  
                     }
                     else{
                         logError(response.body, response.statusCode);
+                        transition = 'failure'; 
                         switch(response.statusCode){
                             case 504:
                                 console.log(response.statusCode + "Internal Server Error Ecountered, Please try a different account.");
-                                conversation.transition('failure');
-                                done();
                                 break;
                             case 502:
                                 console.log(response.statusCode + "Bad Gateway Error, Please try again later.");
-                                conversation.transition('failure');
-                                done();
                                 break;
                             case 408:
                                 console.log(response.statusCode + "Invalid Account Number or Telephone Number, Please try a different account.");
-                                conversation.transition('failure');
-                                done();
                                 break;
                             case 500:
                                 console.log(response.statusCode + "Internal Server Error Ecountered, Please try a different account.");
-                                conversation.transition('failure'); //Internal Server Error Ecountered
-                                done();
                                 break;
                             case 599:
                                 conversation.reply({ text: response.statusCode + "Network Connect Timeout Error, Please try again later." });
-                                conversation.transition('failure');
-                                done();
                                 break;
                             default:
                                 conversation.variable('invalidacctmsg', response.body.message);
-                                conversation.transition('failure');
-                                done();
                                 break;
                         }                        
                     }
@@ -124,20 +113,17 @@ module.exports = {
                         if(responseBody.callType === null){                          
                             logger.warn(`Call Type: [No Call Type]`);  
                             conversation.variable('callType', 'No call type');
-                            conversation.transition('validAcct');
-                            done();
+                            transition = 'validAcct';
                         }
                         else{
                             logger.info(`Call Type: [${responseBody.callType}]`);  
                             conversation.variable('callType', responseBody.callType);
-                            conversation.transition('validAcct');
-                            done();
+                            transition = 'validAcct';
                         }
                     }
                     else {
                         conversation.variable('invalidacctmsg', responseBody.message);
-                        conversation.transition('invalidAcct');
-                        done();
+                        transition = 'invalidAcct';
                     }                    
                 }
             }
@@ -147,6 +133,9 @@ module.exports = {
 
             _logger.shutdown();
             _emailLog.shutdown();
+
+            conversation.transition(transition);
+            done();
         });
     }
 };
