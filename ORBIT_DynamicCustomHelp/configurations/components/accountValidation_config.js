@@ -2,7 +2,8 @@ const apiBaseConfig = require('../apiBase_config');
 
 module.exports = {
     API:{
-        Validate: {        
+        Validate: {     
+            Name: "AccountValidation",   
             PostOptions: (body) => {
                 return {
                     'method': 'POST',
@@ -14,7 +15,7 @@ module.exports = {
                     },                
                     body: body
                 }
-            }
+            }            
         }
     }
 }

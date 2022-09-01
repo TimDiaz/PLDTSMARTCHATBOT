@@ -6,12 +6,12 @@ module.exports = {
         AccountValidation: '[API Error] Account Validation PROD - Subscriber Checking',
         NumberServiceabilityParam: '[API Error] NumberServiceability PROD - VIP checking'
     },
-    EmailFormat: (code, message, serviceNumber) => {
+    EmailFormat: (apiName, code, message, serviceNumber) => {
         const dateTimeNow = moment.tz(Date.now(), 'Asia/Manila').format('MM-DD-YYYY hh:mm A');
         return `Status Code: ${code} 
                 Telephone Number: ${serviceNumber} 
-                API: AccountValidation 
+                API: ${apiName} 
                 Datetime: ${dateTimeNow} 
                 Error: ${message}`;
-    },
+    }
 }
