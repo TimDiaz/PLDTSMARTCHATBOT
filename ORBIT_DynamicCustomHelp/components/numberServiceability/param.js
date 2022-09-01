@@ -32,6 +32,8 @@ module.exports = {
             emailLog.error(message);
         }
 
+        let transition = 'failure';
+
         var serviceNumber = conversation.properties().serviceNumber;
         var areacode = "";
         var telephone = "";
@@ -80,31 +82,26 @@ module.exports = {
             logger.info(`Invoking request successful.`)
             if (error) {
                 logError(error, error.code);
-                conversation.transition('failure');
-                done();
+                transition = 'failure';
             }
             else {
                 logger.info(`Request success with Response Code: [${response.statusCode}]`);
                 var responseBody = response.body;
-                var JSONRes = JSON.parse(responseBody);
-
+                
                 if (response.statusCode > 200) {
                     var statCode = response.statusCode;
                     logError(responseBody, statCode);
+                    transition = 'failure';
                     switch(statCode)
                     {
                         case 504: case 406: case 500: case 404: case 408: case 400:
                             conversation.variable('errorCode', statCode);
-                            conversation.transition('failure');
-                            done();
-                            break;
-                        default:
-                            conversation.transition('failure');
-                            done(); 
                             break;
                     }
                 }
                 else {
+                    var JSONRes = JSON.parse(responseBody);
+
                     logger.debug(`Response Body:  ${JSON.stringify(JSONRes)}`);
                     var paramcity = JSONRes.PARAM3.toUpperCase().toString();
                     var param1 = JSONRes.PARAM1.toUpperCase().toString();
@@ -114,50 +111,42 @@ module.exports = {
                     logger.debug(`City: [${paramcity}].`);
                     logger.debug(`Full City: [${fullcity}].`);
 
-
                     if (JSONRes.EXCEPTIONMSG !== null || JSONRes.EXCEPTIONMSG !== undefined || JSONRes.EXCEPTIONMSG !== '') {
+                        transition = 'blank';
                         switch (JSONRes.EXCEPTIONMSG) {
                             case "100|TELEPHONE NUMBER DOES NOT EXIST":
                                 conversation.variable('PARAM3', fullcity);
-                                conversation.transition('blank');
                                 logger.debug(`Telephone number does not exist service number: [${serviceNumber}].`);
-                                done();
                                 break;
                             default:
                                 conversation.variable('PARAM3', fullcity);
-                                conversation.transition('blank');
                                 logger.debug(`CLARITY ERROR. Server was unable to process request: [${paramcity}].`);
-                                done();
                                 break;
                         }
                     }
                     else {
                         if (paramcity === null || paramcity === undefined || paramcity === '') {
                             conversation.variable('PARAM3', fullcity);
-                            conversation.transition('blank');
-                            done();
+                            transition = 'blank';
                         }
                         else if (paramcity !== null || paramcity !== undefined || paramcity !== ''){
                             switch(paramcity)
                             {
                                 case "VALENZUELA CITY":
                                     conversation.variable('PARAM3', fullcity);
-                                    conversation.transition('param3');
-                                    done();
+                                    transition = 'param3';
                                     break;
                                 default:
                                     conversation.variable('PARAM3', fullcity);
-                                    conversation.transition('VipZone');
-                                    done();
+                                    transition = 'VipZone';
                                     break;
                             }
                         }
                         else{
                             conversation.variable('neType', "NULL NE TYPE");
                             conversation.variable('PARAM3',fullcity);
-                            conversation.transition('blank');
+                            transition = 'blank';
                             console.log(" GET PARAM Component , blank argument service number:" + serviceNumber, "PARAM3: ", fullcity);
-                            done();
                         }
                     }
                 }
@@ -167,6 +156,9 @@ module.exports = {
             logger.info(`-------------------------------------------------------------------------------------------------------------`)
             _logger.shutdown();
             _emailLog.shutdown();
+
+            conversation.transition(transition);
+            done();
         });
     }
 };
