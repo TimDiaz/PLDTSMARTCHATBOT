@@ -4,6 +4,7 @@
 //******************************************************************************************************************************//
 const config = {
     AccountValidation: "accountValidation.DEV",
+    TSEligibility: "tseligibility.DEV",
     NumberServiceabilityPARAM: "numberServiceabilityPARAM.DEV",
     ValidateAccountNumberFormat: "validateaccountnumberformat.DEV",
     ValidateServiceNumberFormat: "validateServiceNumberFormat.DEV"
@@ -18,6 +19,7 @@ const config = {
 //******************************************************************************************************************************//
 // const config = {
 //     AccountValidation: "accountValidation.PROD",
+//     TSEligibility: "tseligibility.PROD",
 //     NumberServiceabilityPARAM: "numberServiceabilityPARAM.PROD",
 //     ValidateAccountNumberFormat: "validateaccountnumberformat.PROD",
 //     ValidateServiceNumberFormat: "validateServiceNumberFormat.PROD"

@@ -83,22 +83,24 @@ module.exports = {
                         transition = 'failure'; 
                         switch(response.statusCode){
                             case 504:
-                                console.log(response.statusCode + "Internal Server Error Ecountered, Please try a different account.");
+                                logger.error(`[ERROR CODE: ${response.statusCode}] Internal Server Error Ecountered, Please try a different account.`);
                                 break;
                             case 502:
-                                console.log(response.statusCode + "Bad Gateway Error, Please try again later.");
+                                logger.error(`[ERROR CODE: ${response.statusCode}] Bad Gateway Error, Please try again later.`);
                                 break;
                             case 408:
-                                console.log(response.statusCode + "Invalid Account Number or Telephone Number, Please try a different account.");
+                                logger.error(`[ERROR CODE: ${response.statusCode}] Invalid Account Number or Telephone Number, Please try a different account.`);
                                 break;
                             case 500:
-                                console.log(response.statusCode + "Internal Server Error Ecountered, Please try a different account.");
+                                logger.error(`[ERROR CODE: ${response.statusCode}] Internal Server Error Ecountered, Please try a different account.`);
                                 break;
                             case 599:
                                 conversation.reply({ text: response.statusCode + "Network Connect Timeout Error, Please try again later." });
+                                logger.error(`[ERROR CODE: ${response.statusCode}] Network Connect Timeout Error, Please try again later.`);
                                 break;
                             default:
                                 conversation.variable('invalidacctmsg', response.body.message);
+                                logger.error(`[ERROR CODE: ${response.statusCode}] ${response.body.message}`);
                                 break;
                         }                        
                     }
@@ -127,6 +129,7 @@ module.exports = {
                     }                    
                 }
             }
+            logger.info(`[Transition]: ${transition}`);
             logger.info(`-------------------------------------------------------------------------------------------------------------`)
             logger.info(`- [END] Account Validation                                                                                  -`)
             logger.info(`-------------------------------------------------------------------------------------------------------------`)
