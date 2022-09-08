@@ -22,8 +22,8 @@ let tsEligibility_match = testing.MockRequest(
 )
 
 async function Run() {
-    await customComponent.invoke("tsEligibility", tsEligibility_match, component);
-    // await customComponent.invoke("tsEligibility", tsEligibility_notmatch, component);
+    // await customComponent.invoke("tsEligibility", tsEligibility_match, component);
+    await customComponent.invoke("tsEligibility", tsEligibility_notmatch, component);
 };
 
 Run();
