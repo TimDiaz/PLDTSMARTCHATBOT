@@ -58,13 +58,9 @@ module.exports = {
             else{
                 var respBody = response.body;
                 var JSONRes = JSON.parse(respBody);
-                var underTreatmentmsg = "Under Treatment.";
-                var openTicketmsg = "With Open Repair Ticket.";
-                var invalidservice = "Invalid service number";
-                var openSOmsg = "With Open SO.";
-                var openTransfermsg = "With Open Transfer SO.";
-                var rbg = "Account is not RBG.";
+                const types = globalProp.AccountEligibility.Types;
             
+                logger.info(`[Response Body] ${respBody}`);
                 if(response.statusCode > 200)
                 {
                     logError(response.body, response.statusCode);
@@ -91,121 +87,110 @@ module.exports = {
                 else{
                     if (JSONRes.eligible === false) {
                         const message = JSONRes.message.toString();
-                        const str = JSONRes.spiel.toString();
+                        const spiel =  JSONRes.spiel? JSONRes.spiel.toString() : '';
 
-                        if (message === underTreatmentmsg) {
-                            logger.debug(`[Response Message]: ${underTreatmentmsg}`);
-                            logger.debug(`[Spiel]: ${str}`);
+                        switch(message){
+                            case types.UnderTreatment.Message:
+                                logger.debug(`[Response Message]: ${types.UnderTreatment.Message}`);
+                                logger.debug(`[Spiel]: ${spiel}`);
 
-                            conversation.variable('ineligibleAcctmsg', str);
-                            transition = 'undertreatment';
-                        }
-                        else if (message === rbg) {
-                            logger.debug(`[Response Message]: ${rbg}`);
-                            logger.debug(`[Spiel]: ${str}`);
+                                conversation.variable(types.UnderTreatment.Conversation.Variables[0], spiel);
+                                transition = types.UnderTreatment.Conversation.Transition;
+                                break;
+                            case types.AccountIsNotRBG.Message:
+                                logger.debug(`[Response Message]: ${types.AccountIsNotRBG.Message}`);
+                                logger.debug(`[Spiel]: ${spiel}`);
 
-                            conversation.variable('ineligibleAcctmsg', str);
-                            transition = 'notRBG';
-                        }
-                        else if (message === openTicketmsg) {
-                            logger.debug(`[Response Message]: ${openTicketmsg}`);
-                            logger.debug(`[Spiel]: ${str}`);
-                            
-                            var tickmatch = str.match(/\d+/);
-                            var ticketNum = tickmatch[0];
-                            var ticketTier = str.match(/(PARENT|CHILD)/g);
-                            var ticketType = str.match(/(VOLUME COMPLAINT|CR|TT|SQDT|PDT)/g);
-                            var promWorgSpiel = "";
+                                conversation.variable(types.AccountIsNotRBG.Conversation.Variables[0], spiel);
+                                transition = types.AccountIsNotRBG.Conversation.Transition;
+                                break;
+                            case types.WithOpenRepairTicket.Message:
+                                logger.debug(`[Response Message]: ${types.WithOpenRepairTicket.Message}`);
+                                logger.debug(`[Spiel]: ${spiel}`);
+                                
+                                var tickmatch = spiel.match(globalProp.AccountEligibility.Validation.DigitsOnly);
+                                var ticketNum = tickmatch[0];
+                                var ticketTier = spiel.match(globalProp.AccountEligibility.Validation.Tier);
+                                var ticketType = spiel.match(globalProp.AccountEligibility.Validation.Types);
+                                var promWorgSpiel = "";
 
-                            logger.debug(`value of ticket tier:  [${ticketTier}].`);
-                            logger.debug(`value of ticket type:  [${ticketType}].`);
-                            logger.debug(`value of ticket number:  [${ticketNum}].`);
-                            
-                            if (ticketTier == "PARENT") {
-                                if (ticketType == "VOLUME COMPLAINT"){
-                                    conversation.variable('ticketNumber', ticketNum);
-                                    conversation.variable('ParentType', ticketType.toString());
-                                    transition = 'withOpenParentVC';
-                                }else if (ticketType.includes('CR')) {
-                                    conversation.variable('ticketNumber', ticketNum);
-                                    conversation.variable('ParentType', ticketType.toString());
-                                    transition = 'withOpenParentCR';
-                                }else{
-                                    conversation.variable('ticketNumber', ticketNum);
-                                    conversation.variable('ParentType', ticketType.toString());
-                                    transition = 'withOpenParent';
-                                }
-                            } 
-                            else if (ticketTier == "CHILD") {
-                                conversation.variable('ticketNumber', ticketNum);
-                                transition = 'withOpenChildTicket';
-                            }
-                            else {
-                                if (str.match(/(VAS SUPPORT|SUB_HOMECARE|HOME-HELD|HOME-FLM|HOME OUTBOUND|HOME CARE|FLM-TOKUNDEROB|FLM-TOKNOANSWER|DEVIATED-TELEPERFORM|DEVIATED-STERLING|DEVIATED-INFOCOM|CONVERGED STORE|CKL_HOMECARE|CCARE|STORE)/g)){
-                                    promWorgSpiel = "Our restoration team is conducting initial diagnosis and troubleshooting for your repair ticket number "+ ticketNum +". We have made a follow-up and will give you an update via SMS in 48 hours.\n\nTo track the status of your ticket, please visit https://pldthome.com/pldt-tracker, or text PLDTTRACK to 8171 for Smart and TNT for free; or 0970 0000 171 for other networks. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
-
-                                }else if (str.match(/(TECHRES-FRD|TECHRES-UNDEROB|TECHRES-CONFIRM-CLOSE|TECH-RESOLUTION|TECHRES-IPTV)/g)) {
-                                    promWorgSpiel = "Our restoration team is conducting testing for your repair ticket number. We will give you an update within 24 hours.\n\nTo track the status of your ticket, please visit https://pldthome.com/pldt-tracker, send us a message at https://m.me/PLDTHome or text PLDTTRACK to 8171 for Smart and TNT for free; or 0970 0000 171 for other networks. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
-
-                                }else if (str.match(/(BAT_OPSIM|BCD_OPSIM|BGO_OPSIM|BICOL_OPSIM|C.VALLEY_OPSIM|CAI_OPSIM|CAMANAVA_OPSIM|CEBU_OPSIM|CVE_OPSIM|DAVAO_OPSIM|DGP_OPSIM|GEN SAN_OPSIM|ILOCOS_OPSIM|LAGUNA_OPSIM|LEYTE_OPSIM|MARATEL_OPSIM|MIG_OPSIM|MKT_OPSIM|MLL_OPSIM|MRN_OPSIM|MYG_OPSIM|NOMLA_OPSIM|NQC_OPSIM|PANAY_OPSIM|PASIG_OPSIM|PBZ_OPSIM|PHILCOM_OPSIM|PSALM_OPSIM|PSY-PRQ_OPSIM|QUEZON_OPSIM|SBI_OPSIM|SFP_OPSIM|SOMLA_OPSIM|SQC_OPSIM|SUB_OPSIM|TRC-NE_OPSIM|ZAMBO_OPSIM|CKL_OPSIM|SAMAR-LEYTE_OPSIM|PLDT PHILCOM_OPSIM|APMS-DISPATCH|OFSC-DISPATCH|SMR-LYT-BOH_OPSIM|SOUTH CEBU_OPSIM|NORTH CEBU_OPSIM)/g)) {
-                                    promWorgSpiel = "Your repair request number "+ ticketNum +" is now dispatched to our field operations team. Our technician will visit your premises, if needed. Please be reminded that our technician is not authorized to receive payment during repair. You may report issues encountered with our technician thru https://pldthome.info/technicianreports. I will also log a follow up to this ticket on your behalf and we will provide updates on the progress of this request thru SMS.\n\nTo track the status of your ticket, please visit https://pldthome.com/pldt-tracker or text PLDTTRACK to 8171 for Smart and TNT for free; or 0970 0000 171 for other networks. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
-
-                                }else if (str.match(/(BZ-MCT|BZ-MIGRATION|BZ-PREMIGRATION|BZ-PREV-MTCE|CLRMD-MNFC|CLRMD-MNFC-CLOSE|CLRMV-MNFC|FSMG|NETRES|NETRES-ACCESS|NETRES-CORE|NETRES-DATA-SHD|NETRESD-FR-1|NETRESD-FR-2|NETRESD-FR-3|NETRESD-FR-4|NETRESD-FR-5|NETRESD-NR-1|NETRESD-NR-2|NETRESD-NR-3|NETRESD-NR-4|NETRESD-NR-5|NETRES-TRANSPORT|NETRES-VOICE|NETRES-VOICE-SHD|NETWORK MIGRATION|SDM|SDM FALLOUT-HOME|NETWORK_FFS_PPM|NETWORK_BUILD-PM|NETWORK_ACCESS-ENGG|BUILD_OPPM_GMM|BUILD_OPPM_VISMIN|BUILD_OPPM_LUZON|NETRES-DATA|NETRES-HD|NET_ACCESS_PLANNING|NETWORK_ACCESS_ENGG)/g)) {
-                                    promWorgSpiel = "Our network engineers are conducting further testing and diagnosis for your repair ticket number. We will give you an update within 24 hours.\n\nTo track the status of your ticket, please visit https://pldthome.com/pldt-tracker, send us a message at https://m.me/PLDTHome or text PLDTTRACK to 8171 for Smart and TNT for free; or 0970 0000 171 for other networks. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
-
-                                }else if (str.match(/(FM_POLL)/g)) {
-                                    promWorgSpiel = "Your ticket number has been resolved and service has been restored. Please call 171 within 48 hours if the issue persists. Otherwise, the ticket will be closed. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
-
-                                } else {
-                                    promWorgSpiel = "Our restoration team is conducting testing for your repair ticket number "+ ticketNum +".\n\nTo track the status of your ticket, please visit https://pldthome.com/pldt-tracker or text PLDTTRACK to 8171 for Smart and TNT for free; or 0970 0000 171 for other networks. Thank you.";
-                                    conversation.variable('indiTicketSpiel', promWorgSpiel);
+                                logger.debug(`value of ticket tier:  [${ticketTier}].`);
+                                logger.debug(`value of ticket type:  [${ticketType}].`);
+                                logger.debug(`value of ticket number:  [${ticketNum}].`);
+                                
+                                conversation.variable(types.WithOpenRepairTicket.Tier.Conversation.Variables[0], ticketNum);
+                                const tier = types.WithOpenRepairTicket.Tier;
+                                switch(ticketTier){
+                                    case tier.Parent.Name:
+                                        const parent = tier.Parent.TicketTypes;                                        
+                                        conversation.variable(parent.Conversation.Variables[0], ticketType.toString());
+                                        if (ticketType == parent.VC.Name){                                    
+                                            transition = parent.VC.Conversation.Transition;
+                                        }else if (ticketType.includes(parent.CR.Name)) {
+                                            transition = parent.CR.Conversation.Transition;
+                                        }else{
+                                            transition = parent.Default.Conversation.Transition;
+                                        }
+                                        break;
+                                    case tier.Child.Name:
+                                        transition = tier.Child.TicketTypes.Conversation.Transition;
+                                        break;
+                                    default:
+                                        const def = tier.Default;
+                                        if (spiel.match(def.Types.InitialDiagnosis.Validation)){
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.InitialDiagnosis.PromWordSpiel.replace('${ticketNumber}', ticketNum));    
+                                        }else if (spiel.match(def.Types.Testing.Validation)) {
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.Testing.PromWordSpiel);    
+                                        }else if (spiel.match(def.Types.Dispatched.Validation)) {
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.Dispatched.PromWordSpiel.replace('${ticketNumber}', ticketNum));    
+                                        }else if (spiel.match(def.Types.FurtherTesting.Validation)) {
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.FurtherTesting.PromWordSpiel);    
+                                        }else if (spiel.match(def.Types.Resolved.Validation)) {
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.Resolved.PromWordSpiel);    
+                                        } else {
+                                            conversation.variable(def.Conversation.Variables[0], def.Types.Deafult.PromWordSpiel.replace('${ticketNumber}', ticketNum));    
+                                        }
+                                        transition = def.Conversation.Transition;
+                                        break;
 
                                 }
-                                conversation.variable('ticketNumber', ticketNum);
-                                transition = 'withOpenIndTicket';
-                            }
-                        }
-                        else if (message === openSOmsg) {
-                            logger.debug(`[Response Message]: ${openSOmsg}`);
-                            logger.debug(`[Spiel]: ${str}`);
-                            
-                            if (str.match(/\d+/g)) {
-                                console.log(str.split(/([0-9]+)/));
-                                var soMatches = str.split(/([0-9]+)/);
-                                var soNum = soMatches[1];
-                                conversation.variable('openSONumber', soNum);
-                            }
-                            else
-                                conversation.variable('openSONumber', "undefined");
+                                break;
+                            case types.WithOpenSO.Message:
+                                logger.debug(`[Response Message]: ${types.WithOpenSO.Message}`);
+                                logger.debug(`[Spiel]: ${spiel}`);
+                                
+                                if (spiel.match(globalProp.AccountEligibility.Validation.DigitsOnly)) {
+                                    var soMatches = spiel.split(globalProp.AccountEligibility.Validation.NumberRange);
+                                    var soNum = soMatches[1];
+                                    conversation.variable(types.WithOpenSO.Conversation.Variables[1], soNum);
+                                }
+                                else
+                                    conversation.variable(types.WithOpenSO.Conversation.Variables[1], "undefined");
 
-                            conversation.variable('ineligibleAcctmsg', str);
-                            transition = 'openSo';
-                        }
-                        else if (message === openTransfermsg) {
-                            logger.debug(`[Response Message]: ${openTransfermsg}`);
-                            logger.debug(`[Spiel]: ${str}`);
+                                conversation.variable(types.WithOpenSO.Conversation.Variables[0], spiel);
+                                transition = types.WithOpenSO.Conversation.Transition;
+                                break;
+                            case types.WithOpenTransferSO.Message:
+                                logger.debug(`[Response Message]: ${types.WithOpenTransferSO.Message}`);
+                                logger.debug(`[Spiel]: ${spiel}`);
 
-                            var matches = str.match(/\d+/); //(/(\d+)/)
-                            conversation.variable('openSONumber', matches);
-                            conversation.variable('ineligibleAcctmsg', str);
-                            transition = 'openSo';
-                        }
-                        else if (message === invalidservice) {
-                            logger.debug(`[Message]: Invalid Service Number`);
-                            transition = 'invalidServiceNum';
-                        }
-                        else {
-                            logger.debug(`[Spiel]: ${str}`);
+                                var matches = spiel.match(globalProp.AccountEligibility.Validation.DigitsOnly);
+                                conversation.variable(types.WithOpenTransferSO.Conversation.Variables[1], matches);
+                                conversation.variable(types.WithOpenTransferSO.Conversation.Variables[0], spiel);
+                                transition = types.WithOpenTransferSO.Conversation.Transition;
+                                break;
+                            case types.InvalidServiceNumber.Message:
+                                logger.debug(`[Message]: Invalid Service Number`);
+                                transition = types.InvalidServiceNumber.Conversation.Transition;
+                                break;
+                            default:
+                                logger.debug(`[Spiel]: ${spiel}`);
 
-                            var matches = str.match(/\d+/); //(/(\d+)/)
-                            conversation.variable('openSONumber', matches);
-                            conversation.variable('ineligibleAcctmsg', str);
-                            transition = 'openorder';
+                                var matches = spiel.match(globalProp.AccountEligibility.Validation.DigitsOnly);
+                                conversation.variable(types.OpenOrder.Conversation.Variables[1], matches);
+                                conversation.variable(types.OpenOrder.Conversation.Variables[0], spiel);
+                                transition = types.OpenOrder.Conversation.Transition;
+                                break;
                         }
                     }
                     else {
@@ -223,7 +208,7 @@ module.exports = {
             _emailLog.shutdown();
 
             conversation.transition(transition);
-            done();
+            // done();
         });
     }
 };

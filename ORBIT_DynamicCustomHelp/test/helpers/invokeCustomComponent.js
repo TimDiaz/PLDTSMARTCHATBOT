@@ -16,7 +16,7 @@ module.exports = {
 
         await component.invoke(mockContext);
 
-        setTimeout(()=> {logger.info(JSON.stringify(mockContext, null, 2));}, 1000);
+        setTimeout(()=> {logger.info(JSON.stringify(mockContext, null, 2));}, 2000);
         
     }
 }
