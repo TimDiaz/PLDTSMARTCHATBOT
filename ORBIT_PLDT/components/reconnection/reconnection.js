@@ -174,9 +174,13 @@ module.exports = {
                         transition = 'acceptedRequest';
                         logger.info(`[ACCEPTED REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
                     }
-                    else if (raw == 2 || raw == 4) {
+                    else if (raw == 2) {
                         transition = 'ongoingProcess';
                         logger.info(`[ONGOING REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                    }
+                    else if (raw == 4) {
+                        transition = 'withOpenSO';
+                        logger.info(`[WITH OPEN SO] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
                     }
                     else if (raw == 3) {
                         error.error = 'API return 3';
