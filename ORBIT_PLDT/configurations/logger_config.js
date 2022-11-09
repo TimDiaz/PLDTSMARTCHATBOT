@@ -6,7 +6,7 @@ const environment = baseConfig.Environment.toLowerCase();
 const wssLogger = {
     Protocol: 'wss',
     URL: baseConfig.ChatBotBaseUrl.replace(/(^\w+:|^)\/\//, ''),
-    Port: 5001
+    Port: 5000
 };
 
 const bcpLogging = {

@@ -44,6 +44,14 @@ module.exports = {
     }),
 
     invoke: (conversation, done) => {
+        // #region Imports
+        const moment = require('moment');        
+        const request = require('request');
+        const globalProp = require('../../helpers/globalProperties');
+        const emailSender = require('../../helpers/emailsender');
+        const instance = require("../../helpers/logger");
+        // #endregion
+
         var accountNumber = conversation.properties().accountNumber;
         var telephoneNumber = conversation.properties().telephoneNumber;
         var lastName = null;
@@ -62,14 +70,6 @@ module.exports = {
         var formDate = moment(requestDate).format('yyyymmdd');
         var arr = new Array(frstName + lstName, refNo, requestDate);
         var arrayEmail = arr.join(",");
-
-
-        // #region Imports
-        const request = require('request');
-        const globalProp = require('../../helpers/globalProperties');
-        const emailSender = require('../../helpers/emailsender');
-        const instance = require("../../helpers/logger");
-        // #endregion
 
         // #region Initialization
         const _logger = instance.logger(globalProp.Logger.Category.Reconnection);
