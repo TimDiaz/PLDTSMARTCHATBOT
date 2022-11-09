@@ -1,0 +1,6 @@
+[DEFAULT]
+user=ocid1.user.oc1..aaaaaaaa255dsksbm7mzo4r2tok5aazqgpyutca3tcniqgvt2j7g6x7pp55q
+fingerprint=a5:ff:93:ff:bf:9d:c4:b1:92:36:60:5e:1c:12:b1:68
+key_file=authentication/DataTechAPI.pem
+tenancy=ocid1.tenancy.oc1..aaaaaaaaayexh6isr5iumr4ag64j7kkteer5qtgseqmkj66y5rfbs4ch3saa
+region=us-ashburn-1
