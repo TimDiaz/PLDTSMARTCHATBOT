@@ -1,0 +1,47 @@
+{
+  "name": "orbit_pldthome_dev",
+  "version": "1.0.0",
+  "description": "Oracle Digital Assistant Component Package",
+  "main": "main.js",
+  "scripts": {
+    "bots-node-sdk": "bots-node-sdk",
+    "help": "npm run bots-node-sdk -- --help",
+    "prepack": "npm run bots-node-sdk -- pack --dry-run",
+    "start": "npm run bots-node-sdk -- service .",
+    "docker-build": "docker-compose build --force-rm --no-cache",
+    "test": "mocha test/businesslogics/*.test.js"
+  },
+  "repository": {},
+  "dependencies": {
+    "@log4js-node/smtp": "^2.0.8",
+    "chai": "^4.3.6",
+    "log4js": "^6.6.1",
+    "mocha": "^10.0.0",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.34",
+    "node": "^18.9.1",
+    "node-fetch": "^2.6.6",
+    "nodejs-websocket": "^1.7.2",
+    "nodemailer": "^6.7.8",
+    "request": "^2.88.2",
+    "save-dev": "0.0.1-security"
+  },
+  "devDependencies": {
+    "@oracle/bots-node-sdk": "^2.6.3",
+    "express": "^4.17.1"
+  },
+  "bundledDependencies": [
+    "@log4js-node/smtp",
+    "chai",
+    "log4js",
+    "mocha",
+    "moment",
+    "moment-timezone",
+    "node",
+    "node-fetch",
+    "nodejs-websocket",
+    "nodemailer",
+    "request",
+    "save-dev"
+  ]
+}
