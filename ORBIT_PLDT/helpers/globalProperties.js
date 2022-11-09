@@ -16,6 +16,7 @@ const fmGetFTDetailsConfig = require('../configurations/components/fmGetFTDetail
 const validateEmailFormatConfig = require('../configurations/components/validateEmailFormat_config');
 const ticketCreationConfig = require('../configurations/components/ticketCreation_config');
 const bsmpCheckerConfig = require('../configurations/components/bsmpChecker_config');
+const bsmpTimerConfig = require('../configurations/components/bsmpTimer_config');
 const reconnectionConfig = require('../configurations/components/reconnection_config');
 module.exports = {    
     APIBaseOption: baseConfig,
@@ -38,5 +39,6 @@ module.exports = {
     },
     FMGetFTDetails: fmGetFTDetailsConfig,
     BSMPChecker: bsmpCheckerConfig,
+    BSMPTimer: bsmpTimerConfig,
     Reconnection: reconnectionConfig
 };

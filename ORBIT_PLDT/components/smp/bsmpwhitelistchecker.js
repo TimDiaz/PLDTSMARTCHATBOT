@@ -49,7 +49,6 @@ module.exports = {
             logger.info(`-------------------------------------------------------------------------------------------------------------`)
 
             _logger.shutdown();
-            //conversation.keepTurn(keepTurn);
             conversation.transition(transition);
             logger.debug(transition);
             done();
@@ -59,8 +58,7 @@ module.exports = {
 
         const jsonData = require('../../data/serviceNumbersWhitelist.json');
         var whitelistedTelNumber = jsonData['whitelist'];
-        // 0322383464 fibr
-        // 0325206016 dsl
+        
         logger.addContext("serviceNumber", telNumber);
         // #endregion
 
