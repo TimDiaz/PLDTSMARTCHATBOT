@@ -10,8 +10,8 @@
 // UAT: Environment = DEV; EnvironmentSwitch = UAT;
 // PROD: Environment = PROD; EnvironmentSwitch = PROD;
 
-const environment = 'PROD';
-const environmentSwitch = 'PROD';
+const environment = 'DEV';
+const environmentSwitch = 'DEV';
 const emailtenant = `PLDT`;
 
 function GetChatbotBaseURL(){
