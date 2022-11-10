@@ -12,7 +12,7 @@
 
 const environment = 'DEV';
 const environmentSwitch = 'DEV';
-const emailtenant = `PLDT Cares`;
+const emailtenant = `PLDT`;
 
 function GetChatbotBaseURL(){
     return environment === 'PROD' ? 

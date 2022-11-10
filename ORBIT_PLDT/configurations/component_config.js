@@ -21,7 +21,11 @@ const config = {
     TicketCreationFT: `ticketCreationFT.${baseConfig.Environment}`,
     TicketCreationProm: `ticketProm.${baseConfig.Environment}`,
     BSMPWhiteList: `BSMPWhitelistChecker.${baseConfig.Environment}`,
-    BSMPChecker: `BSMPChecker.${baseConfig.Environment}`,
+    BSMPChecker: `bsmpchecker.${baseConfig.Environment}`,
+    BSMPTimer: {
+        DSL: `bsmptimerdsl.${baseConfig.Environment}`,
+        FIBR: `bsmptimerfibr.${baseConfig.Environment}`
+    },
     BillingServices: {
         Autobal: `autobal.${baseConfig.Environment}`,
         Autoesoa: `autoesoa.${baseConfig.Environment}`,

@@ -12,7 +12,8 @@ module.exports = {
                         'Content-Type': 'application/json',
                         'Cookie': baseConfig.Cookie
                     },                
-                    body: body
+                    body: body,
+                    timeout: 120000 //120000 ms is 2 min
                 }
             }            
         },
