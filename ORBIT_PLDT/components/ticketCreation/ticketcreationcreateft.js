@@ -137,7 +137,10 @@ module.exports = {
                 logger.error(`[UPDATE CREATE FT ERROR] ${error}`);
             });
         }        
+        
         let transition = 'FAILURE';
+        let retry = 0;
+        const maxRetry = 3;
 
         logger.addContext("serviceNumber", serviceNumber);
         // #endregion
@@ -179,7 +182,7 @@ module.exports = {
                             Process();
                         }
                         else {
-                            UpdateCreateFT(accntNumber, serviceNumber, sysDate, transitionAction, reportedBy, errorreplaced);
+                            UpdateCreateFT(accntNumber, serviceNumber, sysDate, transition, reportedBy, errorreplaced);
                             logger.email(error, error.code, accntNumber, serviceNumber);
                             logger.end();
                         }
@@ -211,7 +214,7 @@ module.exports = {
                             else if (result.statusCode === 500 || result.statusCode === 404) {
                                 logger.debug("response error raw 500 || 404", JSON.stringify(result));
                                 UpdateCreateFT(accntNumber, serviceNumber, sysDate, "ERROR500", reportedBy, responseStr);
-                                transitionAction = '500';
+                                transition = '500';
                             }
                             else {
                                 logger.debug("response error raw else on 500 || 404", JSON.stringify(result));
@@ -236,7 +239,7 @@ module.exports = {
                             logger.debug("spielMsg reply to Chat FLY= ", spiel200);
                             conversation.variable('spielMsg', spiel200);
                             conversation.variable('ticketNumber', tcktNum);
-                            transitionAction = 'SUCCESS';
+                            transition = 'SUCCESS';
                         }
                         logger.end();
                     }

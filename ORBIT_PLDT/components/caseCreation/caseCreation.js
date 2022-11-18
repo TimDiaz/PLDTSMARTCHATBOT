@@ -148,7 +148,7 @@ module.exports = {
                         'Description': trimmeddesc+',Fb Name: '+fullName +',fbid: '+fbId+',Channel Type: '+channelType,
                         'Type':sName,
                         'Status':'Open - Unassigned',
-                        'Origin':'Facebook',
+                        'Origin':'Social Chat',
                         'RecordTypeId': recordTypeid,
                         'Subject': subj,
                         'PLDT_Case_Sub_Type__c': sMenu,

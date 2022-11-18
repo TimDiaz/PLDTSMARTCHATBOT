@@ -5,7 +5,7 @@ const baseConfig = require('./base_config');
 const environment = baseConfig.Environment.toLowerCase();
 const wssLogger = {
     Protocol: 'wss',
-    URL: baseConfig.ChatBotBaseUrl.replace(/(^\w+:|^)\/\//, ''),
+    URL: "staging.chatbot171.pldthome.com",//baseConfig.ChatBotBaseUrl.replace(/(^\w+:|^)\/\//, ''),
     Port: 5000
 };
 
@@ -69,6 +69,8 @@ module.exports = {
         Default: 'default',
         Mailer: 'mailer',
         AccountValidation: 'AccountValidation',
+        HomeRewards: 'HomeRewards',
+        Serviceability: 'Serviceability',
         AccountEligibility: 'AccountEligibility',
         Reconnection: 'Reconnection',
         ValidateAccountNumberFormat: 'ValidateAccountNumberFormat',

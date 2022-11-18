@@ -96,16 +96,22 @@ module.exports = {
                     var JSONRes = JSON.parse(respBody);
 
                     logger.debug(`[Response Body] ${respBody}`);
-                    logger.debug(`[Service Type] ${JSONRes.result.SERVICE_TYPE}`)
-                    logger.debug(`[Account Number] ${accountNumber}`)
+                    if(JSONRes.result.SERVICE_TYPE === undefined)
+                    {
+                        transition = 'failure';
+                    }
+                    else{
+                        logger.debug(`[Service Type] ${JSONRes.result.SERVICE_TYPE}`)
+                        logger.debug(`[Account Number] ${accountNumber}`)
 
-                    const result = logic.CheckSType(JSONRes.result.SERVICE_TYPE);
-                    transition = result.Transition;
+                        const result = logic.CheckSType(JSONRes.result.SERVICE_TYPE);
+                        transition = result.Transition;
 
-                    result.Variables.forEach(element => {
-                        conversation.variable(element.name, element.value);
-                        logger.info(`[Variable] Name: ${element.name} - Value ${element.value}`);
-                    });
+                        result.Variables.forEach(element => {
+                            conversation.variable(element.name, element.value);
+                            logger.info(`[Variable] Name: ${element.name} - Value ${element.value}`);
+                        });
+                    }
                 }
             }
             logger.end();
