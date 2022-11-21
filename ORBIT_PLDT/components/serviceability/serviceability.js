@@ -1,6 +1,5 @@
 "use strict";
 
-const { stringify } = require('querystring');
 const componentName = require('../../configurations/component_config');
 module.exports = {
     metadata: () => ({
