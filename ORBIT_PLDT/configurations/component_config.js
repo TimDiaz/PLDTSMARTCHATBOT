@@ -38,7 +38,8 @@ const config = {
         CheckSType: `checkStype.${baseConfig.Environment}`,
         FMInternet: `fmInternet.${baseConfig.Environment}`,
         FMLandline: `fmLandline.${baseConfig.Environment}`
-    }
+    },
+    ESWUP: { GetDownTime: `eswupGetDownTime.${baseConfig.Environment}`},
 }
 
 module.exports = config;

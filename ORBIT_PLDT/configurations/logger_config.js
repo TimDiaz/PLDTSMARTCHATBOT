@@ -105,5 +105,6 @@ module.exports = {
             FollowUpCase: 'FollowUpCase', 
             FollowUpDate: 'FollowUpDate', 
             PaymentDate: 'PaymentDate'},
+        ESWUP: { GetDownTime: 'ESWUP_GetDownTime' }
     }
 }
