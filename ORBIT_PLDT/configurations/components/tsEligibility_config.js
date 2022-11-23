@@ -80,7 +80,7 @@ module.exports = {
         },
         InvalidServiceNumber: { Message: 'Invalid service number', Conversation: { Transition: 'undertreatment', Variables: ['ineligibleAcctmsg'] }},
         WithOpenSO: { Message: 'With Open SO.', Conversation: { Transition: 'openso', Variables: ['ineligibleAcctmsg', 'openSONumber'] }},
-        WithOpenTransferSO: { Message: 'With Open Transfer SO.', Conversation: { Transition: 'undertreatment', Variables: ['ineligibleAcctmsg', 'openSONumber'] }},
+        WithOpenTransferSO: { Message: 'With Open Transfer SO.', Conversation: { Transition: 'eligible', Variables: ['ineligibleAcctmsg', 'openSONumber'] }},
         AccountIsNotRBG: { Message: 'Account is not RBG.', Conversation: { Transition: 'notRBG', Variables: ['ineligibleAcctmsg'] }},
         OpenOrder: { Conversation: { Transition: 'openorder', Variables: ['ineligibleAcctmsg', 'openSONumber'] }},
     }
