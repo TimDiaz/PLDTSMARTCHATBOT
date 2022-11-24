@@ -17,7 +17,7 @@ module.exports = {
         //     },
         // },
         CheckBalance: {
-            Name: "CheckBalanceBody",
+            Name: "CheckBalance",
             GetOptions: (svcNum) => {
                 return {
                     'method': 'GET',
