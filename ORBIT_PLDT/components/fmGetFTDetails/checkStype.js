@@ -95,17 +95,31 @@ module.exports = {
                     var respBody = response.body;
                     var JSONRes = JSON.parse(respBody);
 
-                    logger.debug(`[Response Body] ${respBody}`);
-                    logger.debug(`[Service Type] ${JSONRes.result.SERVICE_TYPE}`)
-                    logger.debug(`[Account Number] ${accountNumber}`)
+                    // JSONRes = {
+                    //     "result":{
+                    //         "ACCOUNT_NO":JSONRes.ACCOUNT_NO,
+                    //         "SERVICE_TYPE":"ADSL|POTS POSTPAID",
+                    //         "NE_TYPE":"NGN|NGN"
+                    //     }
+                    // };
 
-                    const result = logic.CheckSType(JSONRes.result.SERVICE_TYPE);
-                    transition = result.Transition;
+                    logger.debug(`[Response Body] ${JSON.stringify(JSONRes)}`);
+                    if(JSONRes.result.SERVICE_TYPE === undefined)
+                    {
+                        transition = 'failure';
+                    }
+                    else{
+                        logger.debug(`[Service Type] ${JSONRes.result.SERVICE_TYPE}`)
+                        logger.debug(`[Account Number] ${accountNumber}`)
 
-                    result.Variables.forEach(element => {
-                        conversation.variable(element.name, element.value);
-                        logger.info(`[Variable] Name: ${element.name} - Value ${element.value}`);
-                    });
+                        const result = logic.CheckSType(JSONRes.result.SERVICE_TYPE);
+                        transition = result.Transition;
+
+                        result.Variables.forEach(element => {
+                            conversation.variable(element.name, element.value);
+                            logger.info(`[Variable] Name: ${element.name} - Value ${element.value}`);
+                        });
+                    }
                 }
             }
             logger.end();

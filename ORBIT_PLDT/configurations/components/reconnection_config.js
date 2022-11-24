@@ -6,11 +6,11 @@ module.exports = {
         PostOptions: (body) => {
             return {
                 'method': 'POST',
-                'url': `${baseConfig.SwitchURL}amdocs/api/account/reconnect`,
+                'url': `${baseConfig.BaseUrl}amdocs/api/account/reconnect`,
                 'headers': {
                     'Content-Type': 'application/json',
-                    'X-Pldt-Auth-Token': baseConfig.SwitchToken,
-                    'Cookie': baseConfig.SwitchCookies
+                    'X-Pldt-Auth-Token': baseConfig.AuthToken,
+                    'Cookie': baseConfig.Cookie
                 },
                 body: body
             }

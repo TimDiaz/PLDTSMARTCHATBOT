@@ -10,7 +10,7 @@ module.exports = {
                     required: true
                 }
             },
-            supportedActions: ['undertreatment', 'withOpenParent', 'withOpenParentVC', 'withOpenParentCR', 'withOpenChildTicket', 'withOpenIndTicket', 'openorder', 'eligible', 'openSo', 'notRBG', 'failure', 'invalidServiceNum']
+            supportedActions: ['undertreatment', 'withOpenParent', 'withOpenParentVC', 'withOpenParentCR', 'withOpenChildTicket', 'withOpenIndTicket', 'openorder', 'eligible', 'openso', 'notRBG', 'failure', 'invalidServiceNum']
     }),
 
     invoke: (conversation, done) => {

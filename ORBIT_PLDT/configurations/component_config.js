@@ -1,11 +1,14 @@
 const baseConfig = require('./base_config');
 const config = {
     AccountValidation: `accountValidation.${baseConfig.Environment}`,
+    HomeRewards: `homerewards.${baseConfig.Environment}`,
+    Serviceability: `serviceability.${baseConfig.Environment}`,
     TSEligibility: `tseligibility.${baseConfig.Environment}`,
     Reconnection: `reconnection.${baseConfig.Environment}`,
     NumberServiceabilityPARAM: `numberServiceabilityPARAM.${baseConfig.Environment}`,
     NumberServiceabilityRegion: `numberServiceabilityRegion.${baseConfig.Environment}`,
     NumberServiceabilityTechnology: `numberServiceabilityTechnology.${baseConfig.Environment}`,
+
     ValidateAccountNumberFormat: `validateaccountnumberformat.${baseConfig.Environment}`,
     ValidateServiceNumberFormat: `validateServiceNumberFormat.${baseConfig.Environment}`,
     ValidateServiceRequestNumberFormat: `validateServiceRequestNumberFormat.${baseConfig.Environment}`,
@@ -35,7 +38,8 @@ const config = {
         CheckSType: `checkStype.${baseConfig.Environment}`,
         FMInternet: `fmInternet.${baseConfig.Environment}`,
         FMLandline: `fmLandline.${baseConfig.Environment}`
-    }
+    },
+    ESWUP: { GetDownTime: `eswupGetDownTime.${baseConfig.Environment}`},
 }
 
 module.exports = config;

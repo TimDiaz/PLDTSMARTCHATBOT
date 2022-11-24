@@ -1,0 +1,38 @@
+[
+    {
+        "eswup": "LANDLINE",
+        "desc": "CHATBOT_Part of ESWUP NO DIAL TONE",
+        "fault_type": "RBG-CRT",
+        "prom_cause": "101",
+        "reported_by": "CHATBOT-ESWUP",
+        "empe_id": "MOBILEIT",
+        "prom_worg_name": "IVRS",
+        "prom_sub_type": "V-NO DIAL TONE",
+        "prom_category": "NETWORK - OUTAGE",
+        "prom_sub_category": "PART OF CALL STORM/NETWORK ADVISORY"
+    },
+    {
+        "eswup": "INTERNET",
+        "desc": "CHATBOT_Part of ESWUP NO INTERNET",
+        "fault_type": "RBG-CRT",
+        "prom_cause": "500",
+        "reported_by": "CHATBOT-ESWUP",
+        "empe_id": "MOBILEIT",
+        "prom_worg_name": "IVRS",
+        "prom_sub_type": "D-CANNOT BROWSE or  D-SLOW BROWSING",
+        "prom_category": "NETWORK - OUTAGE",
+        "prom_sub_category": "PART OF CALL STORM/NETWORK ADVISORY"
+    },
+    {
+        "eswup": "LANDLINE AND INTERNET",
+        "desc": "CHATBOT_Part of ESWUP NO VOICE AND DATA",
+        "fault_type": "RBG-CRT",
+        "prom_cause": "100",
+        "reported_by": "CHATBOT-ESWUP",
+        "empe_id": "MOBILEIT",
+        "prom_worg_name": "IVRS",
+        "prom_sub_type": "VD-NO VOICE AND DATA",
+        "prom_category": "NETWORK - OUTAGE",
+        "prom_sub_category": "PART OF CALL STORM/NETWORK ADVISORY"
+    }
+]
