@@ -19,6 +19,7 @@ const bsmpCheckerConfig = require('../configurations/components/bsmpChecker_conf
 const bsmpTimerConfig = require('../configurations/components/bsmpTimer_config');
 const reconnectionConfig = require('../configurations/components/reconnection_config');
 const serviceabilityConfig = require('../configurations/components/serviceability_config');
+const eswupConfig = require('../configurations/components/getDownTime_config');
 module.exports = {    
     APIBaseOption: baseConfig,
     Logger: loggerConfig,
@@ -42,5 +43,6 @@ module.exports = {
     FMGetFTDetails: fmGetFTDetailsConfig,
     BSMPChecker: bsmpCheckerConfig,
     BSMPTimer: bsmpTimerConfig,
-    Reconnection: reconnectionConfig
+    Reconnection: reconnectionConfig,
+    ESWUP: eswupConfig
 };

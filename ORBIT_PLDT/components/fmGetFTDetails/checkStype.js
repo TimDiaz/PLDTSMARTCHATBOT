@@ -95,7 +95,15 @@ module.exports = {
                     var respBody = response.body;
                     var JSONRes = JSON.parse(respBody);
 
-                    logger.debug(`[Response Body] ${respBody}`);
+                    // JSONRes = {
+                    //     "result":{
+                    //         "ACCOUNT_NO":JSONRes.ACCOUNT_NO,
+                    //         "SERVICE_TYPE":"ADSL|POTS POSTPAID",
+                    //         "NE_TYPE":"NGN|NGN"
+                    //     }
+                    // };
+
+                    logger.debug(`[Response Body] ${JSON.stringify(JSONRes)}`);
                     if(JSONRes.result.SERVICE_TYPE === undefined)
                     {
                         transition = 'failure';
