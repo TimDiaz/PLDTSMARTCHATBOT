@@ -16,7 +16,9 @@ module.exports = {
 
         await component.invoke(mockContext);
 
-        setTimeout(()=> {logger.info(JSON.stringify(mockContext, null, 2));}, 100000);
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+        setTimeout(()=> {logger.info(JSON.stringify(mockContext, null, 2));}, 5000);
         
     }
 }

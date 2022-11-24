@@ -25,7 +25,7 @@ module.exports = {
         const serviceNumber = conversation.properties().serviceNumber;
         const deploymentid = conversation.properties().deploymentid;
         const buttonid = conversation.properties().buttonid;
-        const orgId = "00D0T0000000ce2";
+        // const orgId = "00D7F000000zntY";
         // #endregion
 
         // #region Imports
@@ -70,7 +70,7 @@ module.exports = {
 
         logger.start();
         
-        var options = globalProp.CheckWaitTime.API.WaitTime.PostOptions(orgId, deploymentid, buttonid);
+        var options = globalProp.CheckWaitTime.API.WaitTime.PostOptions(deploymentid, buttonid);
         logger.debug(`Setting up the post option: ${JSON.stringify(options)}`);
         
         logger.info(`Starting to invoke the request for API Token.`);
