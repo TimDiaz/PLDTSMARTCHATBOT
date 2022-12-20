@@ -45,7 +45,7 @@ module.exports = {
 
     invoke: (conversation, done) => {
         // #region Imports
-        const moment = require('moment');        
+        const moment = require('moment');
         const request = require('request');
         const globalProp = require('../../helpers/globalProperties');
         const emailSender = require('../../helpers/emailsender');
@@ -116,8 +116,68 @@ module.exports = {
                 } else {
                     logger.info(`[SUCCESSFUL] ${response.body}`);
                 }
-            });    
+            });
         });
+
+        const AutoCheckBalance = (callback) => {
+            const result = {
+                Transition: '406State',
+                ReconnectReason: null,
+                Amount: 0,
+                EmailAddress: null
+            }
+            const options = globalProp.BillingServices.Autobal.API.CheckBalance.GetOptions(telephoneNumber);
+            logger.debug(`[Auto Check Balance] Setting up the get option: ${JSON.stringify(options)}`);
+            logger.info(`[Auto Check Balance] Starting to invoke the request.`);
+            request(options, function (error, response) {
+                logger.info(`[Auto Check Balance] Response: ${response.body}`);
+                if (error) {
+                    logger.error(`[Auto Check Balance] Error: ${error}`);
+                    logger.end();
+                }
+                else {
+                    const responseBody = JSON.parse(response.body);
+                    logger.info(`[Auto Check Balance] Status Code: ${response.statusCode}`);
+                    if (response.statusCode > 200) {
+                        logger.error(`[Auto Check Balance] Error: ${response.body}`);
+                        logger.end();
+                    }
+                    else {
+                        try {
+                            if (responseBody.errorMessage === null) {
+
+                                const emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/, "gm");
+
+                                const customerProfile = responseBody.customerProfile[0];
+                                const balanceProfile = responseBody.balanceProfile;
+
+                                const overDueAmount = parseFloat(customerProfile.overDueAmount);
+                                const amount = parseFloat(balanceProfile.latestBalance);
+                                const emailAddress = customerProfile.emailAddress;
+
+                                logger.debug(`[Auto Check Balance] Over Due Amount: ${overDueAmount}`)
+                                logger.debug(`[Auto Check Balance] Latest Amount: ${amount}`)
+                                logger.debug(`[Auto Check Balance] Email Address: ${emailAddress}`)
+
+                                result.ReconnectReason = overDueAmount != NaN ? (overDueAmount <= 0 ? "PP" : "ITP") : "PP"
+                                result.Amount = amount != NaN ? amount : 0
+                                result.EmailAddress = emailRegex.test(emailAddress) ? emailAddress : "email@email.com.ph"
+                                logger.end();
+                            }
+                            else {
+                                throw responseBody.errorMessage;
+                            }
+                        }
+                        catch (e) {
+                            logger.error(`[Auto Check Balance] Error: ${e}`);
+                            logger.end();
+                        }
+                    }
+                }
+
+                callback(result)
+            });
+        }
 
 
         let transition = '406State';
@@ -127,85 +187,87 @@ module.exports = {
 
         logger.start();
 
-        var requestBody = JSON.stringify({
-            "accountNumber": accountNumber.toString(),
-            "serviceNumber": telephoneNumber,
-            "lastName": lstName.toString(),
-            "processType": processType.toString(),
-            "reconnectReason": reconnectReason.toString(),
-            "priName": priName,
-            "requestDate": formDate.toString(),
-            "amount": "20000",
-            "email": arrayEmail.toString(),
-            "priName2": priName2,
-            "withReconnectFee": withReconnectFee.toString(),
-            "contactNo2": contactNo2,
-            "stmtFaxNo": stmtFaxNo
+        AutoCheckBalance((result) => {
+            if (result.Transition != transition) {
+                var requestBody = JSON.stringify({
+                    "accountNumber": accountNumber.toString(),
+                    "serviceNumber": telephoneNumber,
+                    "lastName": lstName.toString(),
+                    "processType": processType.toString(),
+                    "reconnectReason": result.ReconnectReason, // reconnectReason.toString(),
+                    "priName": priName,
+                    "requestDate": formDate.toString(),
+                    "amount": result.Amount, //"20000",
+                    "email": result.EmailAddress, //arrayEmail.toString(),]
+                    "priName2": priName2,
+                    "withReconnectFee": withReconnectFee.toString(),
+                    "contactNo2": contactNo2,
+                    "stmtFaxNo": stmtFaxNo
+                });
+                const options = globalProp.Reconnection.API.PostOptions(requestBody);
+                logger.debug(`Setting up the get option: ${JSON.stringify(options)}`);
 
-        });
-        const options = globalProp.Reconnection.API.PostOptions(requestBody);
-        logger.debug(`Setting up the get option: ${JSON.stringify(options)}`);
-
-        logger.info(`Starting to invoke the request.`)
-        request(options, function (error, response) {
-            if (error) {
-                logger.sendEmail(error, error.code, '[API Error] Reconnection PROD - Cannot Reconnect User')
-                logger.insertData(1000, telephoneNumber, accountNumber, erroremailmsg)
-                logger.end();
-            }
-            else 
-            {
-                if (response.statusCode > 202) {
-                    logger.sendEmail(response.body, response.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
-                    logger.insertData(response.statusCode, telephoneNumber, accountNumber, JSON.stringify(response.body))
-                }
-                else {
-                    var error = {
-                        error: '',
-                        statusCode: ''
-                    }
-
-                    var res = JSON.parse(response.body)['result'];
-                    var raw = res.includes('|') ? parseInt(res[0]) : parseInt(res);
-
-                    logger.info(`[RESULT] ${res}`);
-                    logger.info(`[RAW] ${raw}`);
-                    if (raw == 0 || raw == 1) {
-                        transition = 'acceptedRequest';
-                        logger.info(`[ACCEPTED REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 2) {
-                        transition = 'ongoingProcess';
-                        logger.info(`[ONGOING REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 4) {
-                        transition = 'withOpenSO';
-                        logger.info(`[WITH OPEN SO] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 3) {
-                        error.error = 'API return 3';
-                        error.statusCode = '200'
-                        transition = 'connectCSRMsg';
-                        logger.info(`[CONNECT CR MESSAGE] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                        logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - API Return 3 (fallout)')
-                    }
-                    else if (raw == 5 || raw == 6 || raw == 7) {
-                        transition = 'additionalReq';
-                        logger.info(`[ADDITIONAL REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                logger.info(`Starting to invoke the request.`)
+                request(options, function (error, response) {
+                    if (error) {
+                        logger.sendEmail(error, error.code, '[API Error] Reconnection PROD - Cannot Reconnect User')
+                        logger.insertData(1000, telephoneNumber, accountNumber, erroremailmsg)
+                        logger.end();
                     }
                     else {
-                        error.error = 'outside of Recon Matrix';
-                        error.statusCode = '406'
+                        if (response.statusCode > 202) {
+                            logger.sendEmail(response.body, response.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
+                            logger.insertData(response.statusCode, telephoneNumber, accountNumber, JSON.stringify(response.body))
+                        }
+                        else {
+                            var error = {
+                                error: '',
+                                statusCode: ''
+                            }
 
-                        transition = '406State';
-                        logger.info(`[OUTSIDE OF RECONNECTION MATRIX] ${raw}`);
-                        logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
+                            var res = JSON.parse(response.body)['result'];
+                            var raw = res.includes('|') ? parseInt(res[0]) : parseInt(res);
+
+                            logger.info(`[RESULT] ${res}`);
+                            logger.info(`[RAW] ${raw}`);
+                            if (raw == 0 || raw == 1) {
+                                transition = 'acceptedRequest';
+                                logger.info(`[ACCEPTED REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                            }
+                            else if (raw == 2) {
+                                transition = 'ongoingProcess';
+                                logger.info(`[ONGOING REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                            }
+                            else if (raw == 4) {
+                                transition = 'withOpenSO';
+                                logger.info(`[WITH OPEN SO] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                            }
+                            else if (raw == 3) {
+                                error.error = 'API return 3';
+                                error.statusCode = '200'
+                                transition = 'connectCSRMsg';
+                                logger.info(`[CONNECT CR MESSAGE] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                                logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - API Return 3 (fallout)')
+                            }
+                            else if (raw == 5 || raw == 6 || raw == 7) {
+                                transition = 'additionalReq';
+                                logger.info(`[ADDITIONAL REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
+                            }
+                            else {
+                                error.error = 'outside of Recon Matrix';
+                                error.statusCode = '406'
+
+                                transition = '406State';
+                                logger.info(`[OUTSIDE OF RECONNECTION MATRIX] ${raw}`);
+                                logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
+                            }
+
+                            logger.insertData(raw, telephoneNumber, accountNumber, JSON.stringify(response.body))
+                        }
+                        logger.end();
                     }
-
-                    logger.insertData(raw, telephoneNumber, accountNumber, JSON.stringify(response.body))
-                }
-                logger.end();
+                });
             }
-        });
+        })
     }
 };
