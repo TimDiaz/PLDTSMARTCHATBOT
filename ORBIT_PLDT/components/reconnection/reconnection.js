@@ -45,10 +45,10 @@ module.exports = {
 
     invoke: (conversation, done) => {
         // #region Imports
-        const moment = require('moment');        
-        const request = require('request');
+        const moment = require('moment');      
+        const process = require('../../businesslogics/reconnection_logic');
+        const api = require('../../http/reconnection_http');
         const globalProp = require('../../helpers/globalProperties');
-        const emailSender = require('../../helpers/emailsender');
         const instance = require("../../helpers/logger");
         // #endregion
 
@@ -75,54 +75,32 @@ module.exports = {
         const _logger = instance.logger(globalProp.Logger.Category.Reconnection);
         const logger = _logger.getLogger();
 
-        logger.sendEmail = ((result, resultCode, subject) => {
-            const strResult = JSON.stringify(result);
-            const message = globalProp.Email.EmailFormat(globalProp.Reconnection.API.Name, resultCode, strResult, telephoneNumber);
-            logger.error(`[ERROR]: ${strResult}`);
-            emailSender(subject, message, globalProp.Logger.BCPLogging.AppNames.Reconnection, strResult, resultCode, accountNumber, telephoneNumber)
+        logger.sendEmail = ((subject, result, resultCode) => {
+            process.EmailSender(subject, result, resultCode, serviceNumber, accountNumber);
         })
 
         logger.start = (() => {
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [START] Reconnection                                                                                      -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
+            process.LoggerStart();
         });
 
         logger.end = (() => {
-            logger.info(`[Transition]: ${transition}`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [END] Reconnection                                                                                        -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-
+            process.LoggerEnd(transition);
             _logger.shutdown();
-
             conversation.transition(transition);
             done();
         });
 
 
         logger.insertData = ((responseType, telephoneNumber, accountNumber, responseBody) => {
-            var body = JSON.stringify({
-                "responseType": responseType,
-                "telephoneNumber": telephoneNumber,
-                "accountNumber": accountNumber,
-                "responseBody": responseBody
-            });
-
-            var options = globalProp.Reconnection.API.InsertDataOptions(body);
-            request(options, function (error, response) {
-                if (error) {
-                    logger.error(`[SUCCESSFUL] ${error}`);
-                } else {
-                    logger.info(`[SUCCESSFUL] ${response.body}`);
-                }
-            });    
+            api.LogResponse(responseType, telephoneNumber, accountNumber, responseBody) 
         });
 
 
         let transition = '406State';
 
         logger.addContext("serviceNumber", telephoneNumber);
+        process.LoggerInstance(logger);
+        api.LoggerInstance(logger);
         // #endregion
 
         logger.start();
@@ -143,69 +121,19 @@ module.exports = {
             "stmtFaxNo": stmtFaxNo
 
         });
-        const options = globalProp.Reconnection.API.PostOptions(requestBody);
-        logger.debug(`Setting up the get option: ${JSON.stringify(options)}`);
-
-        logger.info(`Starting to invoke the request.`)
-        request(options, function (error, response) {
+        api.PostRequest(requestBody, (error, response) => {
             if (error) {
-                logger.sendEmail(error, error.code, '[API Error] Reconnection PROD - Cannot Reconnect User')
-                logger.insertData(1000, telephoneNumber, accountNumber, erroremailmsg)
-                logger.end();
+                process.EmailSender('[API Error] Reconnection PROD - Cannot Reconnect User', body, statusCode, telephoneNumber, accountNumber)
+                api.LogResponse(1000, telephoneNumber, accountNumber, erroremailmsg)
             }
             else 
             {
-                if (response.statusCode > 202) {
-                    logger.sendEmail(response.body, response.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
-                    logger.insertData(response.statusCode, telephoneNumber, accountNumber, JSON.stringify(response.body))
-                }
-                else {
-                    var error = {
-                        error: '',
-                        statusCode: ''
-                    }
+                logger.info(`Request success with Response Code: [${response.statusCode}]`);
 
-                    var res = JSON.parse(response.body)['result'];
-                    var raw = res.includes('|') ? parseInt(res[0]) : parseInt(res);
-
-                    logger.info(`[RESULT] ${res}`);
-                    logger.info(`[RAW] ${raw}`);
-                    if (raw == 0 || raw == 1) {
-                        transition = 'acceptedRequest';
-                        logger.info(`[ACCEPTED REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 2) {
-                        transition = 'ongoingProcess';
-                        logger.info(`[ONGOING REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 4) {
-                        transition = 'withOpenSO';
-                        logger.info(`[WITH OPEN SO] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else if (raw == 3) {
-                        error.error = 'API return 3';
-                        error.statusCode = '200'
-                        transition = 'connectCSRMsg';
-                        logger.info(`[CONNECT CR MESSAGE] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                        logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - API Return 3 (fallout)')
-                    }
-                    else if (raw == 5 || raw == 6 || raw == 7) {
-                        transition = 'additionalReq';
-                        logger.info(`[ADDITIONAL REQUEST] ${raw} [ACCOUNT NUMBER] ${accountNumber}`);
-                    }
-                    else {
-                        error.error = 'outside of Recon Matrix';
-                        error.statusCode = '406'
-
-                        transition = '406State';
-                        logger.info(`[OUTSIDE OF RECONNECTION MATRIX] ${raw}`);
-                        logger.sendEmail(error, error.statusCode, '[API Error] Reconnection PROD - Cannot Reconnect User')
-                    }
-
-                    logger.insertData(raw, telephoneNumber, accountNumber, JSON.stringify(response.body))
-                }
-                logger.end();
+                const result = process.Process(response.statusCode, response.body, accountNumber, telephoneNumber)
+                transition = result.Transition;               
             }
+            logger.end();
         });
     }
 };

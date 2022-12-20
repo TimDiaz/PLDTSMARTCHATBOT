@@ -13,7 +13,7 @@ module.exports = {
                 network: { type: wssClient, host: globalProp.Logger.WSSLogger.URL, port: globalProp.Logger.WSSLogger.Port, protocol: globalProp.Logger.WSSLogger.Protocol },
             },
             categories: {
-                default: { appenders: ['network', 'console'], level: 'all' }
+                default: { appenders: ['network', 'console'], level: 'all' } // set to level: 'off' when running test script
             }
         });
         return {

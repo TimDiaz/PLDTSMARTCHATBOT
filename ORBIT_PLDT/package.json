@@ -1,5 +1,5 @@
 {
-  "name": "orbit_pldthome_dev",
+  "name": "orbit_pldthome_prod",
   "version": "1.0.0",
   "description": "Oracle Digital Assistant Component Package",
   "main": "main.js",
@@ -9,7 +9,7 @@
     "prepack": "npm run bots-node-sdk -- pack --dry-run",
     "start": "npm run bots-node-sdk -- service .",
     "docker-build": "docker-compose build --force-rm --no-cache",
-    "test": "mocha test/businesslogics/*.test.js"
+    "test": "mocha test/businesslogics/*/*.onlyme.test.js"
   },
   "repository": {},
   "dependencies": {
@@ -19,6 +19,7 @@
     "mocha": "^10.0.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.34",
+    "nock": "^13.2.9",
     "node": "^18.9.1",
     "node-fetch": "^2.6.6",
     "nodejs-websocket": "^1.7.2",
@@ -38,6 +39,7 @@
     "mocha",
     "moment",
     "moment-timezone",
+    "nock",
     "node",
     "node-fetch",
     "nodejs-websocket",

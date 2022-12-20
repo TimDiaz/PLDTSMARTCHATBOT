@@ -23,9 +23,9 @@ module.exports = {
     // #endregion
 
     // #region Imports
-    const request = require('request');
+    const process = require('../../../businesslogics/billingServices_logic');
+    const api = require('../../../http/billingServices_http');
     const globalProp = require('../../../helpers/globalProperties');
-    const emailSender = require('../../../helpers/emailsender');
     const instance = require("../../../helpers/logger");
     // #endregion
 
@@ -34,26 +34,16 @@ module.exports = {
     const logger = _logger.getLogger();
 
     logger.sendEmail = ((result, resultCode) => {
-      const strResult = JSON.stringify(result);
-      const message = globalProp.Email.EmailFormat(globalProp.BillingServices.Autobal.API.CheckBalance.Name, resultCode, strResult, svcNum);
-      logger.error(`[ERROR]: ${strResult}`);
-      emailSender(globalProp.Email.Subjects.BillingServices.Autoesoa, message, globalProp.Logger.BCPLogging.AppNames.BillingServices.Autoesoa, strResult, resultCode, 'NO DATA', svcNum)
+      process.AutoESoaEmailSender(result, resultCode, svcNum, 'NO DATA');
     })
 
     logger.start = (() => {
-      logger.info(`-------------------------------------------------------------------------------------------------------------`);
-      logger.info(`- [START] Check Auto ESOA                                                                                   -`);
-      logger.info(`-------------------------------------------------------------------------------------------------------------`);
+      process.AutoESoaLoggerStart();
     });
 
     logger.end = (() => {
-      logger.info(`[Transition]: ${transition}`);
-      logger.info(`-------------------------------------------------------------------------------------------------------------`);
-      logger.info(`- [END] Check Auto ESOA                                                                                       -`);
-      logger.info(`-------------------------------------------------------------------------------------------------------------`);
-
+      process.AutoESoaLoggerEnd(transition);
       _logger.shutdown();
-
       conversation.transition(transition);
       done();
     });
@@ -61,52 +51,23 @@ module.exports = {
     let transition = '';
 
     logger.addContext("serviceNumber", svcNum);
+    process.LoggerInstance(logger);
+    api.LoggerInstance(logger);
     // #endregion
 
     logger.start();
 
-    if (month == 'Current Month') {
-      //var a = new Date();
-      var numMon = 1;
-    }
-    else if (month == 'Last 3 Months') {
-      //var b = new Date();
-      var numMon = 3;
-    }
-
-    var options = globalProp.BillingServices.Autoesoa.API.GetEsoaBalance.GetOptions(svcNum, numMon);
-    logger.debug(`Setting up the post option for API Token: ${JSON.stringify(options)}`);
-
-    request(options, function (error, response) {
-      if (error) { 
+    api.AutoESoaRequest(svcNum, month, (error, response) => {
+      if (error) {
         logger.sendEmail(error, error.code);
-        transition = 'failed';
       }
       else {
-        logger.info(response);
-        if (response.statusCode == 200) {
-          transition = 'success';
-        } //auto bal get email end
-        else {
-          if (response.statusCode == 400) {
-            transition = 'failed';
-          }
-          else if (response.statusCode == 402) {
-            transition = 'invalidparam';
-          }
-          else if (response.statusCode == 403) {
-            transition = 'InvalidEmail';
-          }
-          else if (response.statusCode == 404) {
-            transition = 'invalidBillingDate';
-          }
-          else {
-            transition = 'failed'; //500 return
-          }
-          logger.sendEmail(response.body, response.statusCode)
-        }
+        logger.info(`Request success with Response Code: [${response.statusCode}]`);
+
+        const result = process.AutoESoaProcess(response.statusCode, response.body, 'NO DATA', svcNum)
+        transition = result.Transition;
       }
       logger.end();
-    })
+    });
   }
 };
