@@ -83,6 +83,8 @@ module.exports = {
         // #region Imports
         const fetch = require('node-fetch');
         const request = require('request');
+        const process = require('../../businesslogics/ticketCreation_logic');
+        const api = require('../../http/ticketCreation_http');
         const globalProp = require('../../helpers/globalProperties');
         const emailSender = require('../../helpers/emailsender');
         const instance = require("../../helpers/logger");
@@ -92,57 +94,32 @@ module.exports = {
         const _logger = instance.logger(globalProp.Logger.Category.TicketCreation.ticketcreationcreateft);
         const logger = _logger.getLogger();
 
+        logger.addContext("serviceNumber", serviceNumber);
+        process.LoggerInstance(logger);
+        api.LoggerInstance(logger);
+
         logger.sendEmail = ((result, resultCode) => {
-            const strResult = JSON.stringify(result);
-            const message = globalProp.Email.EmailFormat(globalProp.TicketCreation.API.Validate.Name, resultCode, strResult, serviceNumber);
-            logger.error(`[ERROR]: ${strResult}`);
-            emailSender(globalProp.Email.Subjects.TicketCreation.CreateFT, message, globalProp.Logger.BCPLogging.AppNames.TicketCreation.TicketCreationCreateFt, strResult, resultCode, accntNumber, serviceNumber)
+            process.CreateFTEmailSender(result, resultCode, serviceNumber, accntNumber);
         })
 
         logger.start = (() => {
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [START] Ticket Creation                                                                                   -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
+            process.CreateFTLoggerStart();
         });
 
         logger.end = (() => {
-            logger.info(`[Transition]: ${transition}`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [END] Ticket Creation                                                                                     -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-
+            process.CreateFTLoggerEnd(transition);
             _logger.shutdown();
             conversation.transition(transition);
             done();
         });
 
-        function UpdateCreateFT(aaccNumberinit, telNumberinit, smpStartTsinit, ticketnumber, reportedBy, responseBody) {
-            logger.info(`[UPDATE CREATE FT REQUEST] ------------------------------------------------------------------------------------`);
-            var options = globalProp.TicketCreation.API.UpdateCreateFt.PostOptions({
-                "AccountNumber": aaccNumberinit,
-                "TelephoneNumber": telNumberinit,
-                "smpTS": smpStartTsinit,
-                "TicketNumberCreateFT": ticketnumber,
-                "ReportedBY": reportedBy,
-                "ResponseBody": responseBody
-            });
-            logger.info(`[UPDATE CREATE FT REQUEST OPTION] ${JSON.stringify(options)}`);
-            fetch(globalProp.TicketCreation.API.UpdateCreateFt.URL, options).then((response) => {
-                if (response.status > 200) {
-                    logger.error(`[UPDATE CREATE FT ERROR] ${response.statusText}`);
-                } else {
-                    logger.info(`[UPDATE CREATE FT RESPONSE] ${JSON.stringify(response)}`);
-                }
-            }).catch((error) => {
-                logger.error(`[UPDATE CREATE FT ERROR] ${error}`);
-            });
+        function UpdateCreateFT(accNumberinit, telNumberinit, smpStartTsinit, ticketnumber, reportedBy, responseBody) {
+            api.ChatbotUpdateRequest(accNumberinit, telNumberinit, smpStartTsinit, ticketnumber, reportedBy, responseBody)
         }        
         
         let transition = 'FAILURE';
         let retry = 0;
         const maxRetry = 3;
-
-        logger.addContext("serviceNumber", serviceNumber);
         // #endregion
 
         logger.start();
@@ -161,19 +138,11 @@ module.exports = {
             "promSubCategory": promSubCategory
         });
 
-        logger.debug(`Setting up the request body: ${requestBody}`);
-
-        const options = globalProp.TicketCreation.API.Validate.PostOptions(requestBody);
-        logger.debug(`Setting up the post option: ${JSON.stringify(options)}`);
-
-        logger.info(`Starting to invoke the request.`)
-
         var Process = () => {
             logger.info(`[RETRY] Counter : ${retry}`);
-            request(options, function (error, response) {
+            api.PostRequest(requestBody, retry, (error, response) => {
                 if (typeof (response.body) === "string" && response.body.match(/<html>/i)) {
                     logger.debug("[ERROR 500] Empty response from create ticket.");
-                    logger.end();
                 } else {
                     if (error) {
                         const errorreplaced = JSON.stringify(error).replace('http://', '');
@@ -188,62 +157,17 @@ module.exports = {
                         }
                     }
                     else {
-                        var result = response;
-                        var createRes = JSON.parse(result.body);
-                        const responseStr = JSON.stringify(createRes).replace('http://', '');
+                        logger.info(`Request success with Response Code: [${response.statusCode}]`);
 
-                        if (result.statusCode > 200) {
-                            logger.email(result.body, result.statusCode, accntNumber, serviceNumber)
-                            if (result.statusCode === 406) {
-                                logger.debug("Stringify createRes data 406 " + JSON.stringify(createRes));
-                                var spiel406 = JSON.stringify(createRes.spiel).replace(/[&\/\\#,+()$~%.'":*?<>{}]+/g, '');
-                                var msg406 = JSON.stringify(createRes.message).replace(/[&\/\\#,+()$~%.'":*?<>{}]+/g, '');
-                                logger.debug("Stringify createRes data 406 testing2 pipe " + JSON.stringify(createRes) + " | " + spiel406 + " | " + msg406);
+                        const result = process.CreateFTProcess(response.statusCode, response.body, accntNumber, serviceNumber, reportedBy, sysDate)
+                        transition = result.Transition;
 
-                                if (createRes.spiel) {
-                                    UpdateCreateFT(accntNumber, serviceNumber, sysDate, "ERROR406", reportedBy, responseStr);
-                                    logger.debug('Spiel is not null: ' + spiel406);
-                                    conversation.variable('spielMsg', spiel406);
-                                }
-                                else {
-                                    UpdateCreateFT(accntNumber, serviceNumber, sysDate, "ERROR406", reportedBy, responseStr);
-                                    logger.debug('Spiel is null: ' + msg406);
-                                    conversation.variable('spielMsg', msg406);
-                                }
-                            }
-                            else if (result.statusCode === 500 || result.statusCode === 404) {
-                                logger.debug("response error raw 500 || 404", JSON.stringify(result));
-                                UpdateCreateFT(accntNumber, serviceNumber, sysDate, "ERROR500", reportedBy, responseStr);
-                                transition = '500';
-                            }
-                            else {
-                                logger.debug("response error raw else on 500 || 404", JSON.stringify(result));
-                                UpdateCreateFT(accntNumber, serviceNumber, sysDate, "FAILURE", reportedBy, responseStr);
-                            }
-                        }
-                        else {
-                            logger.debug("Stringify createRes data: " + JSON.stringify(createRes));
-                            logger.debug("Stringify createRes data ticketnumber: " + JSON.stringify(createRes.ticketNumber).replace(/[&\/\\#,+()$~%.'":*?<>{}]+/g, ''));
-                            var tcktNum = JSON.stringify(createRes.ticketNumber).replace(/[&\/\\#,+()$~%.'":*?<>{}]+/g, '');
-                            var spiel200 = JSON.stringify(createRes.spiel).replace(/[&\/\\#,+()$~%.'":*?<>{}]+/g, '');
-
-                            if (tcktNum == null) {
-                                var tcktNumData = JSON.stringify(result);
-                                UpdateCreateFT(accntNumber, serviceNumber, sysDate, tcktNumData, reportedBy, responseStr);
-                            } else {
-                                var tcktNumData = tcktNum;
-                                UpdateCreateFT(accntNumber, serviceNumber, sysDate, tcktNumData, reportedBy, responseStr);
-                            }
-
-                            logger.debug("raw result FLY = ", result);
-                            logger.debug("spielMsg reply to Chat FLY= ", spiel200);
-                            conversation.variable('spielMsg', spiel200);
-                            conversation.variable('ticketNumber', tcktNum);
-                            transition = 'SUCCESS';
-                        }
-                        logger.end();
+                        result.Variables.forEach(element => {
+                            conversation.variable(element.name, element.value);
+                        });
                     }
                 }
+                logger.end();
             });
         };
         Process();
