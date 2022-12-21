@@ -11,7 +11,7 @@
 // PROD: Environment = PROD; EnvironmentSwitch = PROD;
 
 const environment = 'DEV';
-const environmentSwitch = 'DEV';
+const environmentSwitch = 'UAT';
 const emailtenant = `PLDT`;
 
 function GetESWUPBaseURL(){

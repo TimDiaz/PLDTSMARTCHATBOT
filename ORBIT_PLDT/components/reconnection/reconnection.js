@@ -121,7 +121,7 @@ module.exports = {
 
         const AutoCheckBalance = (callback) => {
             const result = {
-                Transition: '406State',
+                HasError: false,
                 ReconnectReason: null,
                 Amount: 0,
                 EmailAddress: null
@@ -132,6 +132,7 @@ module.exports = {
             request(options, function (error, response) {
                 logger.info(`[Auto Check Balance] Response: ${response.body}`);
                 if (error) {
+                    result.HasError = true;
                     logger.error(`[Auto Check Balance] Error: ${error}`);
                     logger.end();
                 }
@@ -139,6 +140,7 @@ module.exports = {
                     const responseBody = JSON.parse(response.body);
                     logger.info(`[Auto Check Balance] Status Code: ${response.statusCode}`);
                     if (response.statusCode > 200) {
+                        result.HasError = true;
                         logger.error(`[Auto Check Balance] Error: ${response.body}`);
                         logger.end();
                     }
@@ -155,20 +157,23 @@ module.exports = {
                                 const amount = parseFloat(balanceProfile.latestBalance);
                                 const emailAddress = customerProfile.emailAddress;
 
-                                logger.debug(`[Auto Check Balance] Over Due Amount: ${overDueAmount}`)
-                                logger.debug(`[Auto Check Balance] Latest Amount: ${amount}`)
-                                logger.debug(`[Auto Check Balance] Email Address: ${emailAddress}`)
-
                                 result.ReconnectReason = overDueAmount != NaN ? (overDueAmount <= 0 ? "PP" : "ITP") : "PP"
                                 result.Amount = amount != NaN ? amount : 0
                                 result.EmailAddress = emailRegex.test(emailAddress) ? emailAddress : "email@email.com.ph"
-                                logger.end();
+
+                                logger.debug(`[Auto Check Balance] Reconnect Reason: ${result.ReconnectReason}`)
+                                logger.debug(`[Auto Check Balance] Latest Amount: ${result.Amount}`)
+                                logger.debug(`[Auto Check Balance] Email Address: ${result.EmailAddress}`)
+
+                                result.HasError = false;
                             }
                             else {
+                                result.HasError = true;
                                 throw responseBody.errorMessage;
                             }
                         }
                         catch (e) {
+                            result.HasError = true;
                             logger.error(`[Auto Check Balance] Error: ${e}`);
                             logger.end();
                         }
@@ -188,7 +193,8 @@ module.exports = {
         logger.start();
 
         AutoCheckBalance((result) => {
-            if (result.Transition != transition) {
+            logger.debug(`[Auto Check Balance] Response: ${result}`)
+            if (result.HasError == false) {
                 var requestBody = JSON.stringify({
                     "accountNumber": accountNumber.toString(),
                     "serviceNumber": telephoneNumber,
