@@ -17,7 +17,7 @@ const apiRequest = (requestBody, retry, callback) =>{
     });
 }
 
-const apiChatbotUpdateRequest = (accNumberinit, telNumberinit, smpStartTsinit, ticketnumber, reportedBy, responseBody, callback) =>{
+const apiChatbotUpdateRequest = (accNumberinit, telNumberinit, smpStartTsinit, ticketnumber, reportedBy, responseBody) =>{
     logger.info(`[UPDATE CREATE FT REQUEST] ------------------------------------------------------------------------------------`);
     var options = globalProp.TicketCreation.API.UpdateCreateFt.PostOptions({
         "AccountNumber": accNumberinit,
@@ -32,7 +32,7 @@ const apiChatbotUpdateRequest = (accNumberinit, telNumberinit, smpStartTsinit, t
         if (response.status > 200) {
             logger.error(`[UPDATE CREATE FT ERROR] ${response.statusText}`);
         } else {
-            logger.info(`[UPDATE CREATE FT RESPONSE] ${JSON.stringify(response)}`);
+            logger.info(`[UPDATE CREATE FT RESPONSE] ${JSON.stringify(response.body)}`);
         }
     }).catch((error) => {
         logger.error(`[UPDATE CREATE FT ERROR] ${error}`);

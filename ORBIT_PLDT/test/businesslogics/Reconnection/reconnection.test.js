@@ -36,7 +36,6 @@ const reqBody = JSON.stringify({
     "withReconnectFee": "0",
     "contactNo2": "null",
     "stmtFaxNo": "null"
-
 });
 
 logger.addContext("serviceNumber", serviceNumber);

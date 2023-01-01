@@ -75,6 +75,8 @@ module.exports = {
 
         // #region Imports
         const request = require('request');
+        const process = require('../../businesslogics/ticketCreation_logic');
+        const api = require('../../http/ticketCreation_http');
         const globalProp = require('../../helpers/globalProperties');
         const instance = require("../../helpers/logger");
         // #endregion
@@ -83,33 +85,26 @@ module.exports = {
         const _logger = instance.logger(globalProp.Logger.Category.TicketCreation.ticketProm);
         const logger = _logger.getLogger();
 
+        logger.addContext("serviceNumber", serviceNumber);
+        process.LoggerInstance(logger);
+        api.LoggerInstance(logger);
+
         logger.sendEmail = ((result, resultCode) => {
-            const strResult = JSON.stringify(result);
-            const message = globalProp.Email.EmailFormat(globalProp.TicketCreation.API.Validate.Name, resultCode, strResult, serviceNumber);
-            logger.error(`[ERROR]: ${strResult}`);
-            emailSender(globalProp.Email.Subjects.TicketCreation.TicketProm, message, globalProp.Logger.BCPLogging.AppNames.TicketCreation.TicketProm, strResult, resultCode, accntNumber, serviceNumber)
+            process.PromEmailSender(result, resultCode, serviceNumber, accntNumber);
         })
 
         logger.start = (() => {
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [START] Ticket Creation                                                                                   -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
+            process.PromLoggerStart();
         });
 
         logger.end = (() => {
-            logger.info(`[Transition]: ${transition}`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-            logger.info(`- [END] Ticket Creation                                                                                     -`)
-            logger.info(`-------------------------------------------------------------------------------------------------------------`)
-
+            process.PromLoggerEnd(transition);
             _logger.shutdown();
             conversation.transition(transition);
             done();
         });
 
-        let transition = 'failure';
-
-        logger.addContext("serviceNumber", serviceNumber);
+        let transition = 'FAILURE';
         // #endregion
 
         logger.start();
@@ -128,50 +123,19 @@ module.exports = {
             "promSubCategory": promSubCategory
         });
 
-        logger.debug(`Setting up the request body: ${requestBody}`);
-
-        const options = globalProp.TicketCreation.API.Validate.PostOptions(requestBody);
-        logger.debug(`Setting up the post option: ${JSON.stringify(options)}`);
-
-        logger.info(`Starting to invoke the request.`)
-
-        request(options, function (error, response) {
+        api.PostRequest(requestBody, 0, (error, response) => {
             if (error) {
-                logger.sendEmail(error, error.code);
+                logger.email(error, error.code, accntNumber, serviceNumber);
             }
             else {
-                var createRes = response.body;
-                var JSONRes = JSON.parse(createRes);
+                logger.info(`Request success with Response Code: [${response.statusCode}]`);
 
-                if (response.statusCode > 200) {
-                    if (response.statusCode === 406) {
-                        if (JSONRes.spiel) {
-                            console.log('Spiel is not null');
-                            logger.debug('Spiel is not null');
-                            conversation.variable('spielMsg', JSONRes.spiel);
-                            logger.debug('Spiel is not null');
-                            transition = 'FAILURE';
-                        }
-                        else {
-                            console.log('Spiel is null');
-                            logger.debug('Spiel is null');
-                            conversation.variable('spielMsg', JSONRes.message);
-                            transition = 'FAILURE';
-                        }
-                    }
-                    else if (response.statusCode === 500) {
-                        transition = '500';
-                    }
-                    else {
-                        transition = 'FAILURE';
-                    }
-                    logger.sendEmail(response.body, response.statusCode);
-                }
-                else {
-                    conversation.variable('spielMsg', JSONRes.spiel);
-                    conversation.variable('ticketNumber', JSONRes.ticketNumber);
-                    transition = 'SUCCESS';
-                }
+                const result = process.PromProcess(response.statusCode, response.body, accntNumber, serviceNumber)
+                transition = result.Transition;
+
+                result.Variables.forEach(element => {
+                    conversation.variable(element.name, element.value);
+                });
             }
             logger.end();
         });

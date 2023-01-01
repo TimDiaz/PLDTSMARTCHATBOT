@@ -81,12 +81,9 @@ module.exports = {
         // #endregion
 
         // #region Imports
-        const fetch = require('node-fetch');
-        const request = require('request');
         const process = require('../../businesslogics/ticketCreation_logic');
         const api = require('../../http/ticketCreation_http');
         const globalProp = require('../../helpers/globalProperties');
-        const emailSender = require('../../helpers/emailsender');
         const instance = require("../../helpers/logger");
         // #endregion
 
@@ -153,7 +150,6 @@ module.exports = {
                         else {
                             UpdateCreateFT(accntNumber, serviceNumber, sysDate, transition, reportedBy, errorreplaced);
                             logger.email(error, error.code, accntNumber, serviceNumber);
-                            logger.end();
                         }
                     }
                     else {
