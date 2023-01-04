@@ -64,11 +64,10 @@ module.exports = {
                 type: "string",
             },
         },
-        supportedActions: ['valid','invalid','failure']
+        supportedActions: ['valid', 'invalid', 'failure']
     }),
 
-    invoke: (conversation, done) => 
-    {
+    invoke: (conversation, done) => {
         // #region Setup Properties
         const accNumber = conversation.properties().accountNumber;
         const svcNumber = conversation.properties().serviceNumber;
@@ -93,6 +92,8 @@ module.exports = {
 
         // #region Imports
         const request = require('request');
+        const process = require('../../businesslogics/caseCreation_logic');
+        const api = require('../../http/caseCreation_http');
         const globalProp = require('../../helpers/globalProperties');
         const emailSender = require('../../helpers/emailsender');
         const instance = require("../../helpers/logger");
@@ -102,128 +103,65 @@ module.exports = {
         const _logger = instance.logger(globalProp.Logger.Category.CaseCreation.ChatAdCaseCreate);
         const logger = _logger.getLogger();
 
+        logger.addContext("serviceNumber", svcNumber);
+        process.LoggerInstance(logger);
+        api.LoggerInstance(logger);
+
         logger.sendEmail = ((result, resultCode) => {
-            const strResult = JSON.stringify(result);
-            const message = globalProp.Email.EmailFormat(globalProp.ChatAdCaseCreate.API.ChatAdToken.Name, resultCode, strResult, svcNumber);
-            logger.error(`[ERROR]: ${strResult}`);            
-            emailSender(globalProp.Email.Subjects.CaseCreation.ChatAdCaseCreate, message, globalProp.Logger.BCPLogging.AppNames.CaseCreation.ChatAdCaseCreate, strResult, resultCode, accNumber, svcNumber)
-        }) 
+            process.ChatAdCaseCreateEmailSender(result, resultCode, svcNumber, accNumber);
+        })
 
         logger.start = (() => {
-            logger.info(`-------------------------------------------------------------------------------------------------------------`);
-            logger.info(`- [START] Chat AD Case Create                                                                               -`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`);
+            process.ChatAdCaseCreateLoggerStart()
         });
 
         logger.end = (() => {
-            logger.info(`[Transition]: ${transition}`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`);
-            logger.info(`- [END] Chat AD Case Create                                                                                 -`);
-            logger.info(`-------------------------------------------------------------------------------------------------------------`);
+            process.ChatAdCaseCreateLoggerEnd(transition);
             _logger.shutdown();
             conversation.transition(transition);
             done();
         });
 
-        let transition = '';
-
-        logger.addContext("serviceNumber", svcNumber);
+        let transition = 'failure';
         // #endregion
 
         logger.start();
 
-        const obj = {
-            "accountNumber": accNumber, 
-            "serviceNumber": svcNumber, 
-            "message": desc, 
-            "customerCity": city,
-            "firstName": fName,
-            "lastName": lName,
-            "userId": uId,
-            "skillName": sName,
-            "subMenu": sMenu,
-            "email": lemail,
-            "RecordTypeId": recordTypeid,
-            "ChatAdId":chatAdId,
-            "OwnerId": ownerid,
-            "Subject": subj,
-            "fbChatAdId": fbChatAdId,
-            "caseOrigin": caseOrigin,
-            "fbID": fbId,
-            "streetAddress": streetAddress                
-        };
-        const ChatADIDDetails = JSON.stringify(obj);
-        logger.info(`data: ${ChatADIDDetails}`);
-
-        var tokenOptions = globalProp.ChatAdCaseCreate.API.ChatAdToken.PostOptions();
-        logger.debug(`Setting up the post option for API Token: ${JSON.stringify(tokenOptions)}`);
-        
-        
-        logger.info(`Starting to invoke the request for API Token.`);
-        request(tokenOptions, function (error, result) {
-            logger.info(`Invoking request successful.`);
-            if (error) {
-                logger.sendEmail(error, error.code);
-                transition = 'failure';
+        api.ChatAdCaseCreateTokenRequest((errorT, responseT) => {
+            if (errorT) {
+                logger.sendEmail(errorT, errorT.code);
                 logger.end();
-            }else{
-                if(result.statusCode > 200){
-                    logger.sendEmail(result.body, result.statusCode);
-                    transition = 'failure';
+            } else {
+                const tokenResult = process.ChatAdCaseCreateTokenLogic(responseT.statusCode, responseT.body, accNumber, svcNumber);
+                if (tokenResult.AuthBearer == '') {
                     logger.end();
-                }else {                
-                    logger.info(`Request Token success with Response Code: [${result.statusCode}]`);
-                    var parsedToken = JSON.parse(result.body)['access_token'];
-                    var rawToken = parsedToken.toString();
-                    var token = rawToken.replace(/"([^"]+(?="))"/g, '$1');
-                    logger.info(`Final Token: ${token}`);
-                    const authBearer = "Authorization : Bearer " + token;
-
+                }
+                else {
                     const requestBody = JSON.stringify({
                         'Description': desc,
-                        'Type':sName,
-                        'Status':'Open - Unassigned',
-                        'Origin':'FB Chat Ad',
+                        'Type': sName,
+                        'Status': 'Open - Unassigned',
+                        'Origin': 'FB Chat Ad',
                         'RecordTypeId': recordTypeid,
                         'Subject': subj,
                         'PLDT_Case_Sub_Type__c': sMenu,
                         'Customer_City__c': city,
                         "Chat_Ad_ID__c": fbChatAdId
                     });
-                    
-                    var options = globalProp.ChatAdCaseCreate.API.ChatAdCaseCreate.PostOptions(authBearer, requestBody);
-                    logger.debug(`Setting up the post option: ${JSON.stringify(options)}`);
-            
-                    logger.info(`Starting to invoke the request.`);
-                    request(options, function (errorMsg, response) {
-                        const instance = require("../../helpers/logger");
-                        const _logger = instance.logger(globalProp.Logger.Category.CaseCreation.ChatAdCaseCreate);
-                        const logger = _logger.getLogger();
-                        logger.addContext("serviceNumber", svcNumber);
-                        if (errorMsg){
+
+                    api.ChatAdCaseCreateRequest(tokenResult.AuthBearer, requestBody, (error, response) => {
+                        if (error) {
                             logger.sendEmail(response, response.statusCode);
-                            transition = 'failure';
-                        }else{
-                            if(response.statusCode > 201){
-                                logger.sendEmail(response.body, response.statusCode);
-                                transition = 'failure';
-                            } else{                            
-                                logger.info(`Invoking request successful.`);
-                                logger.debug(`Request success with Status Code: [${response.statusCode}]`);
-                                if(response.statusCode == 201){
-                                    logger.info(`Successful Case Creation: ${response.body}`);
-                                    transition = 'valid';
-                                }else{ 
-                                    logger.debug(`Case creation response Error: ${response.body}`);
-                                    transition = 'failure';
-                                }
-                            }
-                        }   
-                        logger.end();                 
+                        } else {
+                            logger.info(`Request success with Response Code: [${response.statusCode}]`);
+
+                            const result = process.ChatAdCaseCreateLogic(response.statusCode, response.body, accNumber, svcNumber)
+                            transition = result.Transition;
+                        }
+                        logger.end();
                     });
                 }
             }
         });
-     } 
+    }
 };
-    

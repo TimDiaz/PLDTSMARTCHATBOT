@@ -159,6 +159,10 @@ module.exports = {
                     }
                 }
             });
+
+            if(retry >= 1){
+                logger.end();
+            }
         }
         Process();
     }

@@ -14,7 +14,31 @@ const CheckWaitTimeRequest = (deploymentid, buttonid, callback) =>{
     });
 }
 
+const ChatAdCaseCreateTokenRequest = (callback) =>{
+    var options = globalProp.ChatAdCaseCreate.API.ChatAdToken.PostOptions();
+    logger.debug(`Setting up the token post option: ${JSON.stringify(options)}`);
+
+    logger.info(`Starting to invoke the token request.`)        
+    request(options, (error, response) => {
+        logger.info(`Invoking request token successful.`)
+        callback(error, response)        
+    });
+}
+
+const ChatAdCaseCreateRequest = (authBearer, requestBody, callback) =>{
+    var options = globalProp.ChatAdCaseCreate.API.ChatAdCaseCreate.PostOptions(authBearer, requestBody);
+    logger.debug(`Setting up the post option: ${JSON.stringify(options)}`);
+
+    logger.info(`Starting to invoke the request.`)        
+    request(options, (error, response) => {
+        logger.info(`Invoking request successful.`)
+        callback(error, response)        
+    });
+}
+
 module.exports = {
     LoggerInstance: (instance) => { logger = instance},
-    CheckWaitTimeRequest: CheckWaitTimeRequest
+    CheckWaitTimeRequest: CheckWaitTimeRequest,
+    ChatAdCaseCreateTokenRequest: ChatAdCaseCreateTokenRequest,
+    ChatAdCaseCreateRequest: ChatAdCaseCreateRequest
 }

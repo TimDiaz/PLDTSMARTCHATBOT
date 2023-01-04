@@ -13,6 +13,24 @@ const CheckWaitTimeEmailSender = (result, resultCode, serviceNumber, accountNumb
         emailSender(globalProp.Email.Subjects.CaseCreation.CheckWaitTime, message, globalProp.Logger.BCPLogging.AppNames.CaseCreation.CheckWaitTime, strResult, resultCode, accountNumber, serviceNumber)
 }
 
+const ChatAdCaseCreateEmailSender = (result, resultCode, serviceNumber, accountNumber, isOn = true) => {
+    const strResult = JSON.stringify(result);
+    const message = globalProp.Email.EmailFormat(globalProp.ChatAdCaseCreate.API.ChatAdToken.Name, resultCode, strResult, serviceNumber);
+    logger.error(`[ERROR]: ${strResult}`);
+
+    if (isOn)
+        emailSender(globalProp.Email.Subjects.CaseCreation.ChatAdCaseCreate, message, globalProp.Logger.BCPLogging.AppNames.CaseCreation.ChatAdCaseCreate, strResult, resultCode, accountNumber, serviceNumber)
+}
+
+const FollowUpCaseEmailSender = (result, resultCode, serviceNumber, accountNumber, isOn = true) => {
+    const strResult = JSON.stringify(result);
+    const message = globalProp.Email.EmailFormat(globalProp.ChatAdCaseCreate.API.ChatAdToken.Name, resultCode, strResult, serviceNumber);
+    logger.error(`[ERROR]: ${strResult}`);
+
+    if (isOn)
+        emailSender(globalProp.Email.Subjects.CaseCreation.FollowUpCase, message, globalProp.Logger.BCPLogging.AppNames.CaseCreation.FollowupCase, strResult, resultCode, accountNumber, serviceNumber)
+}
+
 const PaymentDateLoggerStart = () => {
     logger.info(`-------------------------------------------------------------------------------------------------------------`)
     logger.info(`- [START] Payment Date                                                                                      -`)
@@ -49,6 +67,32 @@ const CheckWaitTimeLoggerEnd = (transition) => {
     logger.info(`[Transition]: ${transition}`);
     logger.info(`-------------------------------------------------------------------------------------------------------------`)
     logger.info(`- [END] Check Wait Time                                                                                     -`)
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+}
+
+const ChatAdCaseCreateLoggerStart = () => {
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+    logger.info(`- [START] Chat AD Case Create                                                                               -`)
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+}
+
+const ChatAdCaseCreateLoggerEnd = (transition) => {
+    logger.info(`[Transition]: ${transition}`);
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+    logger.info(`- [END] Chat AD Case Create                                                                                 -`)
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+}
+
+const FollowUpCaseLoggerStart = () => {
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+    logger.info(`- [START] Follow Up Case Creation                                                                           -`)
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+}
+
+const FollowUpCaseLoggerEnd = (transition) => {
+    logger.info(`[Transition]: ${transition}`);
+    logger.info(`-------------------------------------------------------------------------------------------------------------`)
+    logger.info(`- [END] Follow Up Case Creation                                                                             -`)
     logger.info(`-------------------------------------------------------------------------------------------------------------`)
 }
 
@@ -89,9 +133,9 @@ const PaymentDateLogic = (userDate) => {
         }
     }else{
         logger.debug(`Invalid Date more than 3 days of current date`);
-        result.Transition = 'InvalidDate';
+        result.Transition = 'invalidDate';
     }
-
+    
     return result;
 }
 
@@ -163,7 +207,7 @@ const CheckWaitTimeLogic = (statusCode, body, accountNumber, serviceNumber, depl
         logger.debug(`Response Body:  ${body}`);
 
         const res = JSON.parse(body);
-        const waitTime = JSON.stringify(res.messages[0].message.results[0].estimatedWaitTime);
+        const waitTime = res.messages[0].message.results[0].estimatedWaitTime;
 
         // const waitTime = 5; // seconds
         // const waitTime = 120; // for testing with queue
@@ -181,7 +225,7 @@ const CheckWaitTimeLogic = (statusCode, body, accountNumber, serviceNumber, depl
             result.Variables.push({ name: 'waitTime', value: "undefined" });
             result.Variables.push({ name: 'waitTimeSec', value: 0 });
             result.Variables.push({ name: 'LiveAgent_queue', value: queueName });
-            logger.error(`[No Wait Time]: ${error}`);
+            logger.error(`[No Wait Time]: ${body}`);
             result.Transition = 'failure';
         }else{
             if ((waitTime >= 1 && waitTime <= 59) || (waitTime <= 0)) {
@@ -206,6 +250,54 @@ const CheckWaitTimeLogic = (statusCode, body, accountNumber, serviceNumber, depl
     return result;
 }
 
+const ChatAdCaseCreateTokenLogic = (statusCode, body, accountNumber, serviceNumber, sendEmail = true) => {
+    let result = {
+        Transition: 'failure',
+        Variables: [],
+        Reply: [],
+        AuthBearer: ''
+    }
+        
+    if(statusCode > 200){
+        ChatAdCaseCreateEmailSender(body, statusCode, serviceNumber, accountNumber, sendEmail);
+    }else {                
+        logger.info(`Request Token success with Response Code: [${statusCode}]`);
+        var parsedToken = JSON.parse(body)['access_token'];
+        var rawToken = parsedToken.toString();
+        var token = rawToken.replace(/"([^"]+(?="))"/g, '$1');
+        logger.info(`Final Token: ${token}`);
+        const authBearer = "Authorization : Bearer " + token;       
+        result.AuthBearer = authBearer  
+    }
+
+    return result;
+}
+
+const ChatAdCaseCreateLogic = (statusCode, body, accountNumber, serviceNumber, sendEmail = true) => {
+    let result = {
+        Transition: 'failure',
+        Variables: [],
+        Reply: []
+    }
+        
+    if (statusCode > 201) {
+        ChatAdCaseCreateEmailSender(body, statusCode, serviceNumber, accountNumber, sendEmail);
+    } else {
+        logger.info(`Invoking request successful.`);
+        logger.debug(`Request success with Status Code: [${statusCode}]`);
+        if (statusCode == 201) {
+            logger.info(`Successful Case Creation: ${body}`);
+            result.Transition = 'valid';
+        } else {
+            logger.debug(`Case creation response Error: ${body}`);
+            result.Transition = 'failure';
+        }
+    }
+
+    return result;
+}
+
+
 module.exports = {
     LoggerInstance: (instance) => { logger = instance },
     PaymentDateLoggerStart: PaymentDateLoggerStart,
@@ -218,5 +310,13 @@ module.exports = {
     CheckWaitTimeLoggerEnd: CheckWaitTimeLoggerEnd,
     CheckWaitTimeLogic: CheckWaitTimeLogic,
     CheckWaitTimeEmailSender: CheckWaitTimeEmailSender,
-    GetQueueName: GetQueueName
+    GetQueueName: GetQueueName,
+    ChatAdCaseCreateEmailSender: ChatAdCaseCreateEmailSender,
+    ChatAdCaseCreateLoggerStart: ChatAdCaseCreateLoggerStart,
+    ChatAdCaseCreateLoggerEnd: ChatAdCaseCreateLoggerEnd,
+    ChatAdCaseCreateTokenLogic: ChatAdCaseCreateTokenLogic,
+    ChatAdCaseCreateLogic: ChatAdCaseCreateLogic,
+    FollowUpCaseEmailSender: FollowUpCaseEmailSender,
+    FollowUpCaseLoggerStart: FollowUpCaseLoggerStart,
+    FollowUpCaseLoggerEnd: FollowUpCaseLoggerEnd
 }
