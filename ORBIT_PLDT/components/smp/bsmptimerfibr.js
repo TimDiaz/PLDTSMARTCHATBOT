@@ -158,6 +158,9 @@ module.exports = {
                         logger.end();
                     }
                 }
+                if(retry >= 1){
+                    logger.end();
+                }
             });
         }
         Process();
