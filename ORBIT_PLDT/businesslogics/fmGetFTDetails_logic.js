@@ -1,7 +1,25 @@
-class FMGetFTDetails_BussinessLogic {
+    class FMGetFTDetails_BussinessLogic {
     constructor(log, prop) {
         this.logger = log;
         this.globalProp = prop
+    }
+
+    CheckNEType(serviceType, neType, result){
+        let conversation = {
+            Variables: [{name: 'Medallia_checkResult', value: result}],
+            Transition: 'success'
+        };
+
+        if(neType == "undefined" || neType == "error"){
+            conversation.Variables.push({name: 'serviceType', value: "NA"});
+            conversation.Variables.push({name: 'medallia_NE_Type', value: "NA"});
+        }else{
+            let ne_type = neType.split("|")[0];
+            conversation.Variables.push({name: 'serviceType', value: serviceType});
+            conversation.Variables.push({name: 'medallia_NE_Type', value: ne_type});
+        }
+
+        return conversation;
     }
 
     CheckSType(serviceType){

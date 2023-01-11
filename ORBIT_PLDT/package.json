@@ -1,5 +1,5 @@
 {
-  "name": "orbit_pldthome_dev",
+  "name": "orbit_pldthome_prod",
   "version": "1.0.0",
   "description": "Oracle Digital Assistant Component Package",
   "main": "main.js",
