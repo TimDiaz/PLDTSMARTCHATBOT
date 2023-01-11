@@ -6,11 +6,11 @@ module.exports = {
         PostOptions: (body) => {
             return {
                 'method': 'POST',
-                'url': `${baseConfig.BaseUrl}amdocs/api/clarity/fmGetFtDetails`,
+                'url': `${baseConfig.SwitchURL}amdocs/api/clarity/fmGetFtDetails`,
                 'headers': {
                     'Content-Type': 'application/json',
-                    'X-Pldt-Auth-Token': baseConfig.AuthToken,
-                    'Cookie': baseConfig.Cookie
+                    'X-Pldt-Auth-Token': baseConfig.SwitchToken,
+                    'Cookie': baseConfig.SwitchCookies
                 },                
                 body: body
             }
