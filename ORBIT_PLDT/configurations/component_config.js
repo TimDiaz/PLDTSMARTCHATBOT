@@ -35,6 +35,7 @@ const config = {
         AccounetBalance: `accountbalance.${baseConfig.Environment}`,
     },
     FMgetFTDetails:  { 
+        CheckNEtype: `checkNEtype.${baseConfig.Environment}`,
         CheckSType: `checkStype.${baseConfig.Environment}`,
         FMInternet: `fmInternet.${baseConfig.Environment}`,
         FMLandline: `fmLandline.${baseConfig.Environment}`
