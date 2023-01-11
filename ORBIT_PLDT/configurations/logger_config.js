@@ -76,6 +76,7 @@ module.exports = {
         ValidateAccountNumberFormat: 'ValidateAccountNumberFormat',
         ValidateServiceNumberFormat: 'ValidateServiceNumberFormat',
         FMGetFTDetail: {
+            CheckNEType: 'FMGetFTDetail_CheckNEType',
             CheckStype: 'FMGetFTDetail_CheckStype',
             FMInternet: 'FMGetFTDetail_FMInternet',
             FMLandline: 'FMGetFTDetail_FMLandline',
